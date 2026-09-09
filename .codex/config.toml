@@ -1,6 +1,6 @@
 [mcp_servers.chrome_devtools]
 command = "/bin/sh"
-args = ["/Users/iliamanolov/Development/git/sealgate_extension_mvp/scripts/chrome-devtools-mcp.sh"]
+args = ["./scripts/chrome-devtools-mcp.sh"]
 enabled = true
 required = true
 startup_timeout_sec = 60

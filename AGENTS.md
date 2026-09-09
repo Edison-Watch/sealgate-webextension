@@ -13,7 +13,7 @@
 - Use only the project-scoped `chrome_devtools` MCP server for extension testing. Never attach to or manipulate the user's normal Chrome session or profile.
 - The launcher prefers the Chrome-for-Testing binary installed under `.chrome-for-testing/`. Its persistent test-only profile is `.chrome-profile/`; both directories are disposable and ignored by Git.
 - Before installing or reloading the extension, run `npm run build`.
-- Install the unpacked extension from the absolute path `/Users/iliamanolov/Development/git/sealgate_extension_mvp/dist`.
+- Install the unpacked extension from the repository's generated `dist/` directory. Resolve the repository root at runtime, append `/dist`, and pass that absolute path to `chrome_devtools`; never hard-code a machine-specific path.
 - Installing, reloading, triggering, and uninstalling this WIP extension in the dedicated test browser are authorized parts of the development workflow.
 - After UI changes, trigger the extension action, inspect the popup, exercise its controls, and check the popup page for console errors.
 - For this baseline popup, verify the text `Hooray, the extension works!` and verify that clicking `Close` closes the popup.

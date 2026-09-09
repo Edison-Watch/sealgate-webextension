@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "chrome_devtools": {
+      "command": "/bin/sh",
+      "args": ["./scripts/chrome-devtools-mcp.sh"]
+    }
+  }
+}

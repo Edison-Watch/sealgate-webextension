@@ -1,0 +1,23 @@
+{
+  "enabledMcpjsonServers": ["chrome_devtools"],
+  "permissions": {
+    "allow": [
+      "Bash(npm run build)",
+      "Bash(npm run verify)",
+      "Bash(npm test)",
+      "Bash(npm run test:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run check)",
+      "Bash(npm run format:check)",
+      "Bash(npm run browser:install)",
+      "Bash(npm install)",
+      "Bash(npm ci)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git rev-parse:*)",
+      "mcp__chrome_devtools"
+    ],
+    "deny": ["Edit(dist/**)", "Write(dist/**)", "Read(.chrome-profile/**)"]
+  }
+}

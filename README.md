@@ -16,7 +16,7 @@ npm run verify
 
 `browser:install` downloads Chrome for Testing into `.chrome-for-testing/`. The project-scoped Chrome DevTools MCP launcher uses that binary with the dedicated `.chrome-profile/` profile. Neither directory is committed.
 
-After cloning to a different absolute path, update the launcher path in `.codex/config.toml`. The launcher itself resolves the repository root automatically for the browser profile and MCP filesystem root.
+The launcher resolves the repository root automatically, so the checkout works at any absolute path without editing agent configuration.
 
 ## Development commands
 
@@ -35,10 +35,24 @@ The unpacked extension is emitted to `dist/`.
 
 ## Agent-driven Chrome testing
 
-The repository includes:
+The repository is set up for both Codex and Claude Code. Shared pieces:
+
+- `AGENTS.md`, the single source of truth for the build and browser-testing workflow.
+- `scripts/chrome-devtools-mcp.sh`, which selects Chrome for Testing and isolates its profile from normal Chrome.
+
+Codex-specific:
 
 - `.codex/config.toml`, which registers the project-local Chrome DevTools MCP server.
-- `scripts/chrome-devtools-mcp.sh`, which selects Chrome for Testing and isolates its profile from normal Chrome.
-- `AGENTS.md`, which records the build and browser-testing workflow for future Codex tasks.
 
-Trust the repository and reload Codex's local tools after dependencies and Chrome for Testing are installed. Codex can then build `dist/`, install or reload it as an unpacked extension, trigger the toolbar action, inspect and operate the popup, and work with test pages in the dedicated browser.
+Claude Code-specific:
+
+- `CLAUDE.md`, which imports `AGENTS.md` and adds the Claude-only details.
+- `.mcp.json`, which registers the same MCP server as `chrome_devtools`.
+- `.claude/settings.json`, which pre-approves the project's npm scripts and browser
+  tools and denies writes to the generated `dist/` directory. Per-developer overrides
+  belong in the untracked `.claude/settings.local.json`.
+
+Install dependencies and Chrome for Testing, then trust the repository and reload the
+agent's local tools. The agent can then build `dist/`, install or reload it as an
+unpacked extension, trigger the toolbar action, inspect and operate the popup, and work
+with test pages in the dedicated browser.
