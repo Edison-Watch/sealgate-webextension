@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+.chrome-for-testing/
+.chrome-profile/
+.chrome-devtools-mcp.log
+*.log
+.DS_Store
+

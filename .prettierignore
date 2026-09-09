@@ -1,0 +1,7 @@
+node_modules/
+dist/
+coverage/
+.chrome-for-testing/
+.chrome-profile/
+package-lock.json
+
