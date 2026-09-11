@@ -7,7 +7,8 @@ import {
   type TrackerState,
   type TrackerStateChangedMessage,
 } from '../shared/tracker';
-import { generationRequestFilter, generationResponseFrom } from './generation';
+import { backgroundSites } from '../sites/background';
+import { observeLiveGenerations } from './live';
 
 const stateKey = 'trackerState';
 let writeQueue = Promise.resolve();
@@ -131,24 +132,16 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   return true;
 });
 
-// Passive observation only: no "blocking" option, so the request is never
-// delayed or altered. The response's request ID is what ChatGPT stamps on
-// every message that request produces.
-chrome.webRequest.onHeadersReceived.addListener(
-  (details) => {
-    const generation = generationResponseFrom(details);
-    if (!generation) {
-      return;
-    }
-
+observeLiveGenerations(
+  backgroundSites,
+  chrome.webRequest,
+  (tabId, frameId, liveId) => {
     const message: TrackerLiveRequestMessage = {
       type: 'tracker:liveRequest',
-      requestId: generation.requestId,
+      liveId,
     };
     void chrome.tabs
-      .sendMessage(generation.tabId, message, { frameId: generation.frameId })
+      .sendMessage(tabId, message, { frameId })
       .catch(() => undefined);
   },
-  generationRequestFilter,
-  ['responseHeaders'],
 );

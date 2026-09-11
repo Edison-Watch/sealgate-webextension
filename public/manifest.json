@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Sealgate Tool Tracker",
-  "description": "Tracks MCP and app tool calls shown in ChatGPT conversations.",
+  "description": "Tracks MCP and app tool calls shown in ChatGPT and Claude conversations.",
   "version": "0.1.0",
   "permissions": ["storage", "webRequest"],
-  "host_permissions": ["https://chatgpt.com/*"],
+  "host_permissions": ["https://chatgpt.com/*", "https://claude.ai/*"],
   "background": {
     "scripts": ["assets/background.js"],
     "service_worker": "assets/background.js",
@@ -12,7 +12,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://chatgpt.com/*"],
+      "matches": ["https://chatgpt.com/*", "https://claude.ai/*"],
       "js": ["assets/content.js"],
       "run_at": "document_idle"
     }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generationResponseFrom } from './generation';
+import { chatgptBackground } from './background';
 
 function details(
   overrides: Partial<chrome.webRequest.OnHeadersReceivedDetails> = {},
@@ -23,13 +23,13 @@ function details(
   } as chrome.webRequest.OnHeadersReceivedDetails;
 }
 
-describe('generation request observer', () => {
+const liveIdFromResponse = (
+  overrides?: Partial<chrome.webRequest.OnHeadersReceivedDetails>,
+) => chatgptBackground.liveIdFromResponse?.(details(overrides));
+
+describe('ChatGPT generation request observer', () => {
   it('reads the request ID from a live generation response', () => {
-    expect(generationResponseFrom(details())).toEqual({
-      tabId: 7,
-      frameId: 0,
-      requestId: '368d2b3b-59d8-47b9',
-    });
+    expect(liveIdFromResponse()).toBe('368d2b3b-59d8-47b9');
   });
 
   it.each([
@@ -43,13 +43,12 @@ describe('generation request observer', () => {
     ],
     ['a non-POST request', { method: 'GET' }],
     ['a failed request', { statusCode: 429 }],
-    ['a request outside a tab', { tabId: -1 }],
     [
       'another origin',
       { url: 'https://example.com/backend-api/f/conversation' },
     ],
     ['a response without a request ID', { responseHeaders: [] }],
   ])('ignores %s', (_label, overrides) => {
-    expect(generationResponseFrom(details(overrides))).toBeNull();
+    expect(liveIdFromResponse(overrides)).toBeNull();
   });
 });

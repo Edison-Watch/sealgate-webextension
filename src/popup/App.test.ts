@@ -38,6 +38,7 @@ describe('extension popup', () => {
         paused: false,
         calls: [
           {
+            site: 'chatgpt',
             id: 'turn-1:1:microsoft_docs_search',
             conversationId: 'conversation-1',
             turnId: 'turn-1',
@@ -54,6 +55,7 @@ describe('extension popup', () => {
 
     expect(await screen.findByText('microsoft_docs_search')).toBeTruthy();
     expect(screen.getByText('microsoft-learn')).toBeTruthy();
+    expect(screen.getByText('ChatGPT')).toBeTruthy();
     expect(screen.getByText('1')).toBeTruthy();
   });
 
