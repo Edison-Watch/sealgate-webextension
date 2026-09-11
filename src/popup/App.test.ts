@@ -25,10 +25,10 @@ describe('extension popup', () => {
     vi.unstubAllGlobals();
   });
 
-  it('shows the success message', () => {
+  it('shows the popup heading', () => {
     render(App);
 
-    expect(screen.getByText('Hooray, the extension works!')).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Tool calls' })).toBeTruthy();
   });
 
   it('lists calls returned by the in-memory tracker', async () => {
