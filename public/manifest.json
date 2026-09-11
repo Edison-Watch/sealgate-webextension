@@ -15,7 +15,8 @@
   "background": {
     "scripts": ["assets/background.js"],
     "service_worker": "assets/background.js",
-    "type": "module"
+    "type": "module",
+    "preferred_environment": ["service_worker", "document"]
   },
   "content_scripts": [
     {
@@ -34,7 +35,10 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "tool-tracker@sealgate.ai"
+      "id": "tool-tracker@sealgate.ai",
+      "data_collection_permissions": {
+        "required": ["websiteActivity", "websiteContent"]
+      }
     }
   }
 }
