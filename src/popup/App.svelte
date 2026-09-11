@@ -9,6 +9,11 @@
     type TrackerState,
     type TrackerStateChangedMessage,
   } from '../shared/tracker';
+  import {
+    conversationUrl,
+    groupCallsByConversation,
+    type ConversationGroup,
+  } from './conversations';
 
   const siteNames: Record<SiteId, string> = {
     chatgpt: 'ChatGPT',
@@ -16,14 +21,22 @@
   };
 
   let calls: ToolCallRecord[] = [];
+  let groups: ConversationGroup[] = [];
   let paused = false;
   let loading = true;
   let busy = false;
   let error = '';
 
   function applyState(state: TrackerState): void {
-    calls = [...state.calls].reverse();
+    calls = state.calls;
+    groups = groupCallsByConversation(state.calls);
     paused = state.paused;
+  }
+
+  function conversationLabel(group: ConversationGroup): string {
+    return group.conversationId === null
+      ? 'Unsaved conversation'
+      : `Conversation ${group.conversationId.slice(0, 8)}`;
   }
 
   async function sendRequest(request: TrackerRequest): Promise<void> {
@@ -128,19 +141,42 @@
         conversation.
       </p>
     {:else}
-      <ol aria-label="Detected tool calls">
-        {#each calls as call (callKey(call))}
-          <li>
-            <div class="call-heading">
-              <strong>{call.toolName}</strong>
-              <time datetime={call.detectedAt}
-                >{formatTime(call.detectedAt)}</time
-              >
+      <ol class="conversations" aria-label="Conversations">
+        {#each groups as group (group.key)}
+          {@const url = conversationUrl(group)}
+          <li class="conversation">
+            <div class="conversation-heading">
+              {#if url}
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={group.conversationId}>{conversationLabel(group)}</a
+                >
+              {:else}
+                <span>{conversationLabel(group)}</span>
+              {/if}
+              <span class="site-name">
+                {siteNames[group.site]} · {group.calls.length}
+                {group.calls.length === 1 ? 'call' : 'calls'}
+              </span>
             </div>
-            <div class="call-source">
-              <span class="app-name">{call.appName}</span>
-              <span class="site-name">{siteNames[call.site]}</span>
-            </div>
+            <ol
+              class="calls"
+              aria-label={`Tool calls in ${conversationLabel(group)}`}
+            >
+              {#each group.calls as call (callKey(call))}
+                <li class="call">
+                  <div class="call-heading">
+                    <strong>{call.toolName}</strong>
+                    <time datetime={call.detectedAt}
+                      >{formatTime(call.detectedAt)}</time
+                    >
+                  </div>
+                  <span class="app-name">{call.appName}</span>
+                </li>
+              {/each}
+            </ol>
           </li>
         {/each}
       </ol>
@@ -300,36 +336,57 @@
   ol {
     list-style: none;
     margin: 0;
-    max-height: 340px;
-    overflow-y: auto;
     padding: 0;
   }
 
-  li {
-    border-bottom: 1px solid #edf0f5;
-    display: grid;
-    gap: 4px;
-    padding: 11px 14px;
+  .conversations {
+    max-height: 340px;
+    overflow-y: auto;
   }
 
-  li:last-child {
+  .conversation {
+    border-bottom: 1px solid #e2e6ef;
+  }
+
+  .conversation:last-child {
     border-bottom: 0;
   }
 
-  .call-heading,
-  .call-source {
+  .conversation-heading {
+    align-items: center;
+    background: #f8f9fc;
+    display: flex;
+    font-size: 12px;
+    font-weight: 700;
     gap: 12px;
+    justify-content: space-between;
+    padding: 8px 14px;
   }
 
-  .call-source {
-    align-items: center;
-    display: flex;
-    justify-content: space-between;
+  .conversation-heading a {
+    color: #3157d5;
+    text-decoration: none;
+  }
+
+  .conversation-heading a:hover {
+    text-decoration: underline;
+  }
+
+  .call {
+    border-top: 1px solid #edf0f5;
+    display: grid;
+    gap: 4px;
+    padding: 11px 14px 11px 22px;
+  }
+
+  .call-heading {
+    gap: 12px;
   }
 
   .site-name {
     color: #657089;
     font-size: 11px;
+    font-weight: 400;
   }
 
   strong {

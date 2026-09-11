@@ -55,8 +55,58 @@ describe('extension popup', () => {
 
     expect(await screen.findByText('microsoft_docs_search')).toBeTruthy();
     expect(screen.getByText('microsoft-learn')).toBeTruthy();
-    expect(screen.getByText('ChatGPT')).toBeTruthy();
+    expect(screen.getByText('ChatGPT · 1 call')).toBeTruthy();
     expect(screen.getByText('1')).toBeTruthy();
+  });
+
+  it('groups calls under a link to their conversation', async () => {
+    const record = {
+      site: 'chatgpt',
+      turnId: 'turn-1',
+      appName: 'microsoft-learn',
+      toolIndex: 1,
+      detectedAt: '2026-09-11T12:00:00.000Z',
+    };
+    sendMessage.mockResolvedValue({
+      ok: true,
+      state: {
+        paused: false,
+        calls: [
+          {
+            ...record,
+            id: 'result-1',
+            conversationId: 'alpha-conversation',
+            toolName: 'microsoft_docs_search',
+          },
+          {
+            ...record,
+            id: 'result-2',
+            conversationId: 'bravo-conversation',
+            toolName: 'microsoft_docs_fetch',
+          },
+          {
+            ...record,
+            id: 'result-3',
+            conversationId: 'alpha-conversation',
+            toolName: 'microsoft_code_sample_search',
+          },
+        ],
+      },
+    });
+
+    render(App);
+
+    const conversationA = await screen.findByRole('list', {
+      name: 'Tool calls in Conversation alpha-co',
+    });
+    const links = screen.getAllByRole('link');
+    expect(links.map((link) => link.getAttribute('href'))).toEqual([
+      'https://chatgpt.com/c/alpha-conversation',
+      'https://chatgpt.com/c/bravo-conversation',
+    ]);
+    expect(conversationA.textContent).toContain('microsoft_code_sample_search');
+    expect(conversationA.textContent).toContain('microsoft_docs_search');
+    expect(conversationA.textContent).not.toContain('microsoft_docs_fetch');
   });
 
   it('pauses listening', async () => {
