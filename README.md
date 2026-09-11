@@ -62,6 +62,26 @@ npm run verify
 
 The unpacked extension is emitted to `dist/`.
 
+## Releases
+
+`npm run package` builds the extension, checks it with `web-ext lint`, and zips it into `artifacts/sealgate_tool_tracker-<version>.zip`. The same zip works in Chrome and Firefox.
+
+To publish a test build, set the same `version` in `package.json` and `public/manifest.json`, commit, and push a matching tag:
+
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The `Release` workflow runs `npm run verify`, checks that the tag matches both versions, packages the extension, and attaches the zip to a GitHub pre-release. The repository is public, so releases are too. Builds report to `https://dashboard.sealgate.ai` unless the workflow sets `VITE_SEALGATE_URL`.
+
+### Installing a release
+
+Download the zip from the latest release and unzip it.
+
+- **Chrome:** open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, and pick the unzipped folder. Keep the folder where it is; Chrome loads the extension from it. To update, replace the folder's contents with a newer release and click the reload button on the extension's card.
+- **Firefox:** open `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on…**, and pick the zip or the unzipped `manifest.json`. Firefox removes the add-on when it restarts, so load it again after each restart.
+
 ## Agent-driven browser testing
 
 The repository is set up for both Codex and Claude Code. Shared pieces:

@@ -1,5 +1,6 @@
 node_modules/
 dist/
+artifacts/
 coverage/
 .chrome-for-testing/
 .chrome-profile/
