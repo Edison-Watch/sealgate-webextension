@@ -1,8 +1,12 @@
-# Sealgate Extension MVP
+# Sealgate Tool Tracker
 
 A Chrome Manifest V3 extension built with TypeScript, Svelte, Vite, ESLint, Prettier, and Vitest, with isolated Chrome and Firefox test browsers.
 
-Clicking the toolbar action opens a small popup that says “Hooray, the extension works!” and provides a Close button.
+The extension watches ChatGPT conversations for MCP and app tool calls. Its popup lists each detected app and tool, can pause or resume listening, and can clear the list. It records only calls made by answers that ChatGPT generates in the tab while the extension is running; calls already in a conversation's history are ignored.
+
+To tell the two apart, the background script watches ChatGPT's answer stream (`POST /backend-api/f/conversation`) with a non-blocking `webRequest` listener and reads the `x-oai-request-id` response header. ChatGPT stamps that ID on every message the request produces, so the content script accepts a tool call only when its message carries an ID seen in that tab. The detector reads ChatGPT's rendered React metadata without clicking controls, expanding panels, or reading tool payloads, and the extension never blocks or changes a request. If the page is reloaded while an answer is still streaming, calls that finish after the reload are not recorded.
+
+Records use `storage.session`, so they stay in browser memory only and are cleared when the browser or extension session ends.
 
 ## Setup
 
