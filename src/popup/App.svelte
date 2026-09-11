@@ -1,12 +1,19 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type {
-    ToolCallRecord,
-    TrackerRequest,
-    TrackerResponse,
-    TrackerState,
-    TrackerStateChangedMessage,
+  import {
+    callKey,
+    type SiteId,
+    type ToolCallRecord,
+    type TrackerRequest,
+    type TrackerResponse,
+    type TrackerState,
+    type TrackerStateChangedMessage,
   } from '../shared/tracker';
+
+  const siteNames: Record<SiteId, string> = {
+    chatgpt: 'ChatGPT',
+    claude: 'Claude',
+  };
 
   let calls: ToolCallRecord[] = [];
   let paused = false;
@@ -80,7 +87,7 @@
   <header>
     <div>
       <p class="eyebrow">Sealgate</p>
-      <h1>ChatGPT tool calls</h1>
+      <h1>Tool calls</h1>
     </div>
     <span class:paused class="status">{paused ? 'Paused' : 'Listening'}</span>
   </header>
@@ -117,11 +124,12 @@
       <p class="empty">Loading tracker…</p>
     {:else if calls.length === 0}
       <p class="empty">
-        No tool calls detected yet. Use a tool in an open ChatGPT conversation.
+        No tool calls detected yet. Use a tool in an open ChatGPT or Claude
+        conversation.
       </p>
     {:else}
       <ol aria-label="Detected tool calls">
-        {#each calls as call (call.id)}
+        {#each calls as call (callKey(call))}
           <li>
             <div class="call-heading">
               <strong>{call.toolName}</strong>
@@ -129,7 +137,10 @@
                 >{formatTime(call.detectedAt)}</time
               >
             </div>
-            <span class="app-name">{call.appName}</span>
+            <div class="call-source">
+              <span class="app-name">{call.appName}</span>
+              <span class="site-name">{siteNames[call.site]}</span>
+            </div>
           </li>
         {/each}
       </ol>
@@ -305,8 +316,20 @@
     border-bottom: 0;
   }
 
-  .call-heading {
+  .call-heading,
+  .call-source {
     gap: 12px;
+  }
+
+  .call-source {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .site-name {
+    color: #657089;
+    font-size: 11px;
   }
 
   strong {

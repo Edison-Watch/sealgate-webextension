@@ -7,6 +7,7 @@ import {
 
 function call(id: string): ToolCallRecord {
   return {
+    site: 'chatgpt',
     id,
     conversationId: 'conversation-1',
     turnId: 'turn-1',
@@ -25,6 +26,18 @@ describe('tracker state', () => {
 
     expect(state.calls).toEqual([first, second]);
     expect(addUniqueCalls(state, [first])).toBe(state);
+  });
+
+  it('keeps calls from different sites that share an id', () => {
+    const chatgpt = call('call-1');
+    const other = {
+      ...chatgpt,
+      site: 'other',
+    } as unknown as ToolCallRecord;
+
+    expect(
+      addUniqueCalls(createInitialState(), [chatgpt, other]).calls,
+    ).toEqual([chatgpt, other]);
   });
 
   it('does not record calls while paused', () => {

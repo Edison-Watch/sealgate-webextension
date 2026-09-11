@@ -17,7 +17,8 @@
 - Install the unpacked extension from the repository's generated `dist/` directory. Resolve the repository root at runtime, append `/dist`, and pass that absolute path to the relevant browser MCP; never hard-code a machine-specific path.
 - Installing, reloading, triggering, and uninstalling this WIP extension in the dedicated test browsers are authorized parts of the development workflow.
 - After UI changes, test in Firefox first: trigger the extension action, inspect the popup, exercise its controls, and check the popup page for console errors. Repeat in Chrome only when the change is browser-specific, compatibility-sensitive, or explicitly requested.
-- For this baseline popup, verify the heading `ChatGPT tool calls`, verify that the toolbar button shows the Sealgate icon, and verify that clicking `Close` closes the popup.
+- For this baseline popup, verify the heading `Tool calls`, verify that the toolbar button shows the Sealgate icon, and verify that clicking `Close` closes the popup.
+- Firefox's remote protocol cannot open `moz-extension://` pages, so the popup cannot be inspected through `firefox_devtools`. To confirm that tool calls are recorded, trigger one on the site and read the tab's console for the `[Sealgate] Recorded …; N calls stored.` line and for errors. Ask the user to open the popup only when its rendering itself needs checking.
 
 ## Useful commands
 

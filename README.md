@@ -2,11 +2,27 @@
 
 A Chrome Manifest V3 extension built with TypeScript, Svelte, Vite, ESLint, Prettier, and Vitest, with isolated Chrome and Firefox test browsers.
 
-The extension watches ChatGPT conversations for MCP and app tool calls. Its popup lists each detected app and tool, can pause or resume listening, and can clear the list. It records only calls made by answers that ChatGPT generates in the tab while the extension is running; calls already in a conversation's history are ignored.
+The extension watches ChatGPT and Claude conversations for MCP and app tool calls. Its popup lists each detected app, tool, and site, can pause or resume listening, and can clear the list. It records only calls made by answers generated in the tab while the extension is running; calls already in a conversation's history are ignored.
 
-To tell the two apart, the background script watches ChatGPT's answer stream (`POST /backend-api/f/conversation`) with a non-blocking `webRequest` listener and reads the `x-oai-request-id` response header. ChatGPT stamps that ID on every message the request produces, so the content script accepts a tool call only when its message carries an ID seen in that tab. The detector reads ChatGPT's rendered React metadata without clicking controls, expanding panels, or reading tool payloads, and the extension never blocks or changes a request. If the page is reloaded while an answer is still streaming, calls that finish after the reload are not recorded.
+To tell the two apart, the background script watches each site's answer requests with non-blocking `webRequest` listeners, and the content script accepts a tool call only when its message carries an ID seen in that tab:
 
-Records use `storage.session`, so they stay in browser memory only and are cleared when the browser or extension session ends.
+- ChatGPT: the `x-oai-request-id` response header of `POST /backend-api/f/conversation`, which ChatGPT stamps on every message the request produces.
+- Claude: `turn_message_uuids.assistant_message_uuid` in the body of `POST …/chat_conversations/<id>/completion` or `…/retry_completion`, which becomes the answer's message UUID. No other field of the body is read.
+
+The detectors read each site's rendered React data without clicking controls, expanding panels, or reading tool payloads, and the extension never blocks or changes a request. On Claude, only `tool_use` blocks with an MCP server URL and a matching result are recorded, so built-in tools such as web search are skipped. If the page is reloaded while an answer is still streaming, calls that finish after the reload are not recorded.
+
+Records use `storage.session`, so they stay in browser memory only and are cleared when the browser or extension session ends. Each recording also logs one `[Sealgate] Recorded …; N calls stored.` line to the tab's console, so tracking can be checked without opening the popup.
+
+## Site adapters
+
+Each supported site lives under `src/sites/<site>/` as two adapters, defined in `src/sites/types.ts`:
+
+- `background.ts` recognises the request that generates a new answer and returns the live ID its messages will carry, from the request (`liveIdFromRequest`) or the response (`liveIdFromResponse`).
+- `content.ts` names the element that holds one rendered turn and reads the turn's tool calls, keeping only those whose live ID was observed in the tab.
+
+`src/background/live.ts` and `src/content/runtime.ts` supply everything else: passive request observation, messaging, change tracking, deduplication, and pause handling. To add a site, write both adapters, register them in `src/sites/background.ts` and `src/sites/content.ts`, and add the site's origin to `host_permissions` and the content-script `matches` in `public/manifest.json`. A test fails if the manifest entries are missing.
+
+Content scripts cannot import shared chunks, so `npm run build` bundles the content script in a second pass as a single self-contained file.
 
 ## Setup
 
