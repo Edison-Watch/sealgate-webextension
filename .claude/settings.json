@@ -22,7 +22,6 @@
     ],
     "deny": [
       "Edit(dist/**)",
-      "Write(dist/**)",
       "Read(.chrome-profile/**)",
       "Read(.firefox-profile/**)"
     ]
