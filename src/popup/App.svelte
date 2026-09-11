@@ -9,6 +9,7 @@
     type TrackerState,
     type TrackerStateChangedMessage,
   } from '../shared/tracker';
+  import Connection from './Connection.svelte';
   import {
     conversationUrl,
     groupCallsByConversation,
@@ -104,6 +105,8 @@
     </div>
     <span class:paused class="status">{paused ? 'Paused' : 'Listening'}</span>
   </header>
+
+  <Connection />
 
   <div class="controls">
     <button
@@ -211,6 +214,8 @@
   main {
     display: grid;
     gap: 16px;
+    margin-inline: auto;
+    max-width: 520px;
     padding: 18px;
   }
 

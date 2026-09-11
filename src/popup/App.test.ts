@@ -5,7 +5,14 @@ import App from './App.svelte';
 describe('extension popup', () => {
   const addListener = vi.fn();
   const removeListener = vi.fn();
+  // Tracker requests; the Connection panel's requests are answered below.
   const sendMessage = vi.fn();
+  const disconnected = {
+    destination: null,
+    status: { pending: 0, lastExportAt: null, lastError: null },
+    signingIn: false,
+    signInError: null,
+  };
 
   beforeEach(() => {
     sendMessage.mockResolvedValue({
@@ -14,7 +21,10 @@ describe('extension popup', () => {
     });
     vi.stubGlobal('chrome', {
       runtime: {
-        sendMessage,
+        sendMessage: (message: { type: string }) =>
+          message.type.startsWith('connection:')
+            ? Promise.resolve({ ok: true, connection: disconnected })
+            : sendMessage(message),
         onMessage: { addListener, removeListener },
       },
     });

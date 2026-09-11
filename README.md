@@ -11,7 +11,16 @@ To tell the two apart, the background script watches each site's answer requests
 
 The detectors read each site's rendered React data without clicking controls, expanding panels, or reading tool payloads, and the extension never blocks or changes a request. On Claude, only `tool_use` blocks with an MCP server URL and a matching result are recorded, so built-in tools such as web search are skipped. If the page is reloaded while an answer is still streaming, calls that finish after the reload are not recorded.
 
-Records use `storage.session`, so they stay in browser memory only and are cleared when the browser or extension session ends. Each recording also logs one `[Sealgate] Recorded …; N calls stored.` line to the tab's console, so tracking can be checked without opening the popup.
+Records use `storage.session`, so they stay in browser memory only and are cleared when the browser or extension session ends (calls waiting to be exported are the exception; see Reporting). Each recording also logs one `[Sealgate] Recorded …; N calls stored.` line to the tab's console, so tracking can be checked without opening the popup.
+
+## Reporting
+
+The extension can report every call it records, as OpenTelemetry spans over OTLP/HTTP JSON. On install it opens its page in a tab so the user can pick a destination; the popup offers the same choices:
+
+- **Log in to Sealgate** signs in to the official instance (`VITE_SEALGATE_URL` at build time, `https://dashboard.sealgate.ai` by default). **Use a self-hosted Sealgate** does the same for any other instance. Both run OAuth 2.1 with PKCE through `identity.launchWebAuthFlow`: the extension registers itself with the instance (dynamic client registration, using the browser's extension redirect URL) and asks for the `telemetry` scope, which lets it report calls but not use the MCP gateway. Calls go to `<instance>/otlp/v1/traces` and appear in the dashboard's Web Agents tab.
+- **Use an OpenTelemetry endpoint** sends to any OTLP/HTTP receiver, with optional headers. The extension then asks for access to that host, so the export does not depend on the collector's CORS settings.
+
+Each call is one span named `execute_tool <tool>` with the GenAI attributes `gen_ai.tool.name` and `gen_ai.conversation.id`, plus `sealgate.web_agent.*` for the site, app, call and turn. All calls of a conversation share a trace, and IDs are derived from the call, so a retried export can be deduplicated. Calls already recorded when a destination is chosen are sent too. Calls that fail to send stay queued in `storage.local` (up to 1,000) and are retried every minute. Tokens and headers are stored in `storage.local` and never shown to the popup.
 
 ## Site adapters
 
