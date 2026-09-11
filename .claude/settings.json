@@ -4,6 +4,7 @@
     "allow": [
       "Bash(npm run build)",
       "Bash(npm run verify)",
+      "Bash(npm run package)",
       "Bash(npm test)",
       "Bash(npm run test:*)",
       "Bash(npm run lint)",

@@ -26,6 +26,7 @@
 - `npm run build` — generate the unpacked extension in `dist/`.
 - `npm test` — run Vitest once.
 - `npm run verify` — formatting, lint, Svelte/TypeScript checks, tests, and build.
+- `npm run package` — build, lint the extension with `web-ext`, and zip it into `artifacts/`.
 - `npm run browser:install` — install a repo-local Chrome-for-Testing build.
 - `npm run browser:install:chrome` — install only Chrome for Testing.
 - `npm run browser:install:firefox` — install only Firefox Developer Edition.

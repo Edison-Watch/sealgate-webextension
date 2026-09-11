@@ -9,6 +9,7 @@ export default tseslint.config(
     ignores: [
       'coverage/',
       'dist/',
+      'artifacts/',
       'node_modules/',
       '.chrome-for-testing/',
       '.chrome-profile/',
