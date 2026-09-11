@@ -7,7 +7,14 @@ export default defineConfig({
   build: {
     emptyOutDir: true,
     rollupOptions: {
-      input: 'popup.html',
+      input: {
+        popup: 'popup.html',
+        background: 'src/background/main.ts',
+        content: 'src/content/main.ts',
+      },
+      output: {
+        entryFileNames: 'assets/[name].js',
+      },
     },
   },
   test: {

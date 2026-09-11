@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "chrome_devtools": {
+      "command": "/bin/sh",
+      "args": ["./scripts/chrome-devtools-mcp.sh"]
+    },
+    "firefox_devtools": {
+      "command": "/bin/sh",
+      "args": ["./scripts/firefox-devtools-mcp.sh"]
+    }
+  }
+}

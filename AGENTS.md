@@ -10,12 +10,13 @@
 
 ## Browser testing
 
-- Use only the project-scoped `chrome_devtools` MCP server for extension testing. Never attach to or manipulate the user's normal Chrome session or profile.
-- The launcher prefers the Chrome-for-Testing binary installed under `.chrome-for-testing/`. Its persistent test-only profile is `.chrome-profile/`; both directories are disposable and ignored by Git.
+- Use the project-scoped `firefox_devtools` MCP server as the primary extension-testing environment. Use `chrome_devtools` only for Chrome compatibility checks or when Firefox cannot exercise the required behavior. Never attach to or manipulate the user's normal browser sessions or profiles.
+- The Firefox launcher prefers a Puppeteer-managed Firefox binary and falls back to Firefox Developer Edition under `.firefox-for-testing/`. It launches Firefox with remote control enabled against the persistent test-only `.firefox-profile/` copy; the project profile is disposable and ignored by Git.
+- The Chrome launcher prefers the Chrome-for-Testing binary installed under `.chrome-for-testing/`. Its persistent test-only profile is `.chrome-profile/`; both directories are disposable and ignored by Git.
 - Before installing or reloading the extension, run `npm run build`.
-- Install the unpacked extension from the absolute path `/Users/iliamanolov/Development/git/sealgate_extension_mvp/dist`.
-- Installing, reloading, triggering, and uninstalling this WIP extension in the dedicated test browser are authorized parts of the development workflow.
-- After UI changes, trigger the extension action, inspect the popup, exercise its controls, and check the popup page for console errors.
+- Install the unpacked extension from the repository's generated `dist/` directory. Resolve the repository root at runtime, append `/dist`, and pass that absolute path to the relevant browser MCP; never hard-code a machine-specific path.
+- Installing, reloading, triggering, and uninstalling this WIP extension in the dedicated test browsers are authorized parts of the development workflow.
+- After UI changes, test in Firefox first: trigger the extension action, inspect the popup, exercise its controls, and check the popup page for console errors. Repeat in Chrome only when the change is browser-specific, compatibility-sensitive, or explicitly requested.
 - For this baseline popup, verify the text `Hooray, the extension works!` and verify that clicking `Close` closes the popup.
 
 ## Useful commands
@@ -25,3 +26,5 @@
 - `npm test` — run Vitest once.
 - `npm run verify` — formatting, lint, Svelte/TypeScript checks, tests, and build.
 - `npm run browser:install` — install a repo-local Chrome-for-Testing build.
+- `npm run browser:install:chrome` — install only Chrome for Testing.
+- `npm run browser:install:firefox` — install only Firefox Developer Edition.

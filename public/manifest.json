@@ -1,10 +1,24 @@
 {
   "manifest_version": 3,
-  "name": "Sealgate Extension MVP",
-  "description": "A minimal Svelte and TypeScript Chrome extension.",
+  "name": "Sealgate Tool Tracker",
+  "description": "Tracks MCP and app tool calls shown in ChatGPT conversations.",
   "version": "0.1.0",
+  "permissions": ["storage", "webRequest"],
+  "host_permissions": ["https://chatgpt.com/*"],
+  "background": {
+    "scripts": ["assets/background.js"],
+    "service_worker": "assets/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://chatgpt.com/*"],
+      "js": ["assets/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Open Sealgate Extension MVP"
+    "default_title": "Open Sealgate Tool Tracker"
   }
 }
