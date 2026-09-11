@@ -1,4 +1,4 @@
-export type SiteId = 'chatgpt';
+export type SiteId = 'chatgpt' | 'claude';
 
 export interface ToolCallRecord {
   site: SiteId;

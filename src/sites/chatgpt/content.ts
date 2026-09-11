@@ -1,5 +1,5 @@
 import type { ToolCallRecord } from '../../shared/tracker';
-import { property, reactFiber, stringProperty } from '../react';
+import { arrayProperty, property, reactFiber, stringProperty } from '../react';
 import type { ContentSite } from '../types';
 
 const toolListButtonSelector = 'button[aria-label="Open tool call list"]';
@@ -15,14 +15,14 @@ function reactMessages(button: HTMLButtonElement): unknown[] {
 
     for (let depth = 0; fiber && depth < 100; depth += 1) {
       const props = property(fiber, 'memoizedProps');
-      const allMessages = property(props, 'allMessages');
-      if (Array.isArray(allMessages)) {
-        return [...allMessages];
+      const allMessages = arrayProperty(props, 'allMessages');
+      if (allMessages) {
+        return allMessages;
       }
 
-      const messages = property(props, 'messages');
-      if (Array.isArray(messages) && nearestMessages.length === 0) {
-        nearestMessages = [...messages];
+      const messages = arrayProperty(props, 'messages');
+      if (messages && nearestMessages.length === 0) {
+        nearestMessages = messages;
       }
 
       fiber = property(fiber, 'return');

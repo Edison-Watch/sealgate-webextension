@@ -55,6 +55,7 @@ describe('extension popup', () => {
 
     expect(await screen.findByText('microsoft_docs_search')).toBeTruthy();
     expect(screen.getByText('microsoft-learn')).toBeTruthy();
+    expect(screen.getByText('ChatGPT')).toBeTruthy();
     expect(screen.getByText('1')).toBeTruthy();
   });
 

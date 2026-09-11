@@ -62,10 +62,18 @@ export function startTracking(site: ContentSite): void {
       return;
     }
 
-    await chrome.runtime.sendMessage({
+    const response = (await chrome.runtime.sendMessage({
       type: 'tracker:recordCalls',
       calls,
-    });
+    })) as TrackerResponse | undefined;
+
+    // One line per recording, so the tracker can be checked from the tab's
+    // console without opening the popup. Page scripts cannot read it.
+    console.info(
+      `[Sealgate] Recorded ${calls
+        .map((call) => `${call.appName}/${call.toolName}`)
+        .join(', ')}; ${response?.state?.calls.length ?? '?'} calls stored.`,
+    );
   }
 
   function readTurns(turns: Iterable<HTMLElement>): ToolCallRecord[] {
