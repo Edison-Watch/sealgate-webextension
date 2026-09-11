@@ -12,6 +12,8 @@ export default tseslint.config(
       'node_modules/',
       '.chrome-for-testing/',
       '.chrome-profile/',
+      '.firefox-for-testing/',
+      '.firefox-profile/',
     ],
   },
   js.configs.recommended,

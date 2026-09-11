@@ -18,10 +18,13 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "verify": "npm run format:check && npm run lint && npm run check && npm run test && npm run build",
-    "browser:install": "browsers install chrome@stable --path .chrome-for-testing"
+    "browser:install": "npm run browser:install:chrome",
+    "browser:install:chrome": "browsers install chrome@stable --path .chrome-for-testing",
+    "browser:install:firefox": "browsers install firefox@devedition --path .firefox-for-testing"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@mozilla/firefox-devtools-mcp": "0.10.2",
     "@puppeteer/browsers": "3.2.2",
     "@sveltejs/vite-plugin-svelte": "7.3.0",
     "@testing-library/svelte": "5.4.2",

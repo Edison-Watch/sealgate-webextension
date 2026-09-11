@@ -4,6 +4,10 @@ coverage/
 .chrome-for-testing/
 .chrome-profile/
 .chrome-devtools-mcp.log
+.firefox-for-testing/
+.firefox-profile/
+.firefox-devtools-mcp.log
+.firefox-devtools-browser.log
 *.log
 .DS_Store
 
