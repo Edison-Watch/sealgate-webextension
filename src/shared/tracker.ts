@@ -1,4 +1,7 @@
+export type SiteId = 'chatgpt';
+
 export interface ToolCallRecord {
+  site: SiteId;
   id: string;
   conversationId: string | null;
   turnId: string;
@@ -32,11 +35,16 @@ export interface TrackerStateChangedMessage {
 
 export interface TrackerLiveRequestMessage {
   type: 'tracker:liveRequest';
-  requestId: string;
+  liveId: string;
 }
 
 export function createInitialState(): TrackerState {
   return { paused: false, calls: [] };
+}
+
+// Call IDs are only unique within the site that issued them.
+export function callKey(call: ToolCallRecord): string {
+  return `${call.site}:${call.id}`;
 }
 
 export function addUniqueCalls(
@@ -47,13 +55,14 @@ export function addUniqueCalls(
     return state;
   }
 
-  const knownIds = new Set(state.calls.map((call) => call.id));
+  const knownKeys = new Set(state.calls.map(callKey));
   const uniqueCalls = incomingCalls.filter((call) => {
-    if (knownIds.has(call.id)) {
+    const key = callKey(call);
+    if (knownKeys.has(key)) {
       return false;
     }
 
-    knownIds.add(call.id);
+    knownKeys.add(key);
     return true;
   });
 

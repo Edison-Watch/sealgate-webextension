@@ -1,11 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type {
-    ToolCallRecord,
-    TrackerRequest,
-    TrackerResponse,
-    TrackerState,
-    TrackerStateChangedMessage,
+  import {
+    callKey,
+    type ToolCallRecord,
+    type TrackerRequest,
+    type TrackerResponse,
+    type TrackerState,
+    type TrackerStateChangedMessage,
   } from '../shared/tracker';
 
   let calls: ToolCallRecord[] = [];
@@ -121,7 +122,7 @@
       </p>
     {:else}
       <ol aria-label="Detected tool calls">
-        {#each calls as call (call.id)}
+        {#each calls as call (callKey(call))}
           <li>
             <div class="call-heading">
               <strong>{call.toolName}</strong>

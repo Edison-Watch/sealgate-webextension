@@ -38,6 +38,7 @@ describe('extension popup', () => {
         paused: false,
         calls: [
           {
+            site: 'chatgpt',
             id: 'turn-1:1:microsoft_docs_search',
             conversationId: 'conversation-1',
             turnId: 'turn-1',

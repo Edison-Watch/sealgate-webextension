@@ -1,32 +1,9 @@
-import type { ToolCallRecord } from '../shared/tracker';
+import type { ToolCallRecord } from '../../shared/tracker';
+import { property, reactFiber, stringProperty } from '../react';
+import type { ContentSite } from '../types';
 
 const toolListButtonSelector = 'button[aria-label="Open tool call list"]';
-const reactFiberPrefix = '__reactFiber$';
-
-type UnknownRecord = Record<string, unknown>;
-
-function isRecord(value: unknown): value is UnknownRecord {
-  return typeof value === 'object' && value !== null;
-}
-
-function property(value: unknown, key: string): unknown {
-  return isRecord(value) ? value[key] : undefined;
-}
-
-function stringProperty(value: unknown, key: string): string | null {
-  const result = property(value, key);
-  return typeof result === 'string' && result.length > 0 ? result : null;
-}
-
-function pageObject(element: Element): UnknownRecord {
-  try {
-    const wrapped = (element as Element & { wrappedJSObject?: unknown })
-      .wrappedJSObject;
-    return isRecord(wrapped) ? wrapped : (element as unknown as UnknownRecord);
-  } catch {
-    return element as unknown as UnknownRecord;
-  }
-}
+const assistantTurnSelector = 'section[data-turn="assistant"][data-turn-id]';
 
 // The nearest `messages` prop only holds the last call/result pair of a turn;
 // `allMessages`, further up the tree, holds every message in the turn.
@@ -34,11 +11,7 @@ function reactMessages(button: HTMLButtonElement): unknown[] {
   let nearestMessages: unknown[] = [];
 
   try {
-    const pageButton = pageObject(button);
-    const fiberKey = Object.getOwnPropertyNames(pageButton).find((key) =>
-      key.startsWith(reactFiberPrefix),
-    );
-    let fiber = fiberKey ? property(pageButton, fiberKey) : undefined;
+    let fiber = reactFiber(button);
 
     for (let depth = 0; fiber && depth < 100; depth += 1) {
       const props = property(fiber, 'memoizedProps');
@@ -86,9 +59,7 @@ export function readToolCallsFromButton(
   liveRequestIds: ReadonlySet<string>,
   now: () => Date = () => new Date(),
 ): ToolCallRecord[] {
-  const turn = button.closest<HTMLElement>(
-    'section[data-turn="assistant"][data-turn-id]',
-  );
+  const turn = button.closest<HTMLElement>(assistantTurnSelector);
   const turnId = turn?.dataset.turnId;
   if (!turnId || !button.isConnected) {
     return [];
@@ -118,6 +89,7 @@ export function readToolCallsFromButton(
     // Live turns carry a placeholder turn ID that changes on reload; the
     // message ID is stable across the stream, the page, and history.
     calls.push({
+      site: 'chatgpt',
       id: messageId,
       conversationId,
       turnId,
@@ -131,29 +103,13 @@ export function readToolCallsFromButton(
   return calls;
 }
 
-export function findToolListButtons(
-  root: ParentNode = document,
-): HTMLButtonElement[] {
-  return [...root.querySelectorAll<HTMLButtonElement>(toolListButtonSelector)];
-}
-
-export function updateSeenCalls(
-  seenCallIds: Set<string>,
-  calls: ToolCallRecord[],
-  emitNew: boolean,
-): ToolCallRecord[] {
-  const newCalls: ToolCallRecord[] = [];
-
-  for (const call of calls) {
-    if (seenCallIds.has(call.id)) {
-      continue;
-    }
-
-    seenCallIds.add(call.id);
-    if (emitNew) {
-      newCalls.push(call);
-    }
-  }
-
-  return newCalls;
-}
+export const chatgptContent: ContentSite = {
+  id: 'chatgpt',
+  origin: 'https://chatgpt.com',
+  turnSelector: assistantTurnSelector,
+  readToolCalls(turn, liveIds, now) {
+    return [
+      ...turn.querySelectorAll<HTMLButtonElement>(toolListButtonSelector),
+    ].flatMap((button) => readToolCallsFromButton(button, liveIds, now));
+  },
+};

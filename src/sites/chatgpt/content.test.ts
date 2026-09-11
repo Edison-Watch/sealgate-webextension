@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { readToolCallsFromButton, updateSeenCalls } from './detector';
-import type { ToolCallRecord } from '../shared/tracker';
+import { chatgptContent, readToolCallsFromButton } from './content';
 
 function toolResult(id: string, requestId: string, toolName: string) {
   return {
@@ -91,6 +90,7 @@ describe('ChatGPT tool call detector', () => {
     expect(click).not.toHaveBeenCalled();
     expect(calls).toEqual([
       {
+        site: 'chatgpt',
         id: 'result-1',
         conversationId: 'conversation-1',
         turnId: 'request-conversation-1-0',
@@ -100,6 +100,7 @@ describe('ChatGPT tool call detector', () => {
         detectedAt: '2026-09-11T12:00:00.000Z',
       },
       {
+        site: 'chatgpt',
         id: 'result-2',
         conversationId: 'conversation-1',
         turnId: 'request-conversation-1-0',
@@ -142,28 +143,19 @@ describe('ChatGPT tool call detector', () => {
     ).toEqual(['microsoft_docs_search']);
   });
 
-  it('uses existing calls as a baseline and emits only later calls', () => {
-    const existingCall: ToolCallRecord = {
-      id: 'result-1',
-      conversationId: 'conversation-1',
-      turnId: 'turn-1',
-      appName: 'microsoft-learn',
-      toolName: 'microsoft_docs_search',
-      toolIndex: 1,
-      detectedAt: '2026-09-11T12:00:00.000Z',
-    };
-    const newCall: ToolCallRecord = {
-      ...existingCall,
-      id: 'result-2',
-      toolName: 'microsoft_docs_fetch',
-      toolIndex: 2,
-    };
-    const seenCallIds = new Set<string>();
+  it('reads calls from every tool list button in a turn', () => {
+    const button = renderToolButton({
+      messages: [toolResult('result-1', 'live-1', 'microsoft_docs_search')],
+    });
+    const turn = button.closest<HTMLElement>(chatgptContent.turnSelector);
+    if (!turn) {
+      throw new Error('Expected the fixture turn.');
+    }
 
-    expect(updateSeenCalls(seenCallIds, [existingCall], false)).toEqual([]);
-    expect(updateSeenCalls(seenCallIds, [existingCall], true)).toEqual([]);
-    expect(updateSeenCalls(seenCallIds, [existingCall, newCall], true)).toEqual(
-      [newCall],
-    );
+    expect(
+      chatgptContent
+        .readToolCalls(turn, new Set(['live-1']), now)
+        .map((call) => call.id),
+    ).toEqual(['result-1']);
   });
 });

@@ -8,6 +8,17 @@ To tell the two apart, the background script watches ChatGPT's answer stream (`P
 
 Records use `storage.session`, so they stay in browser memory only and are cleared when the browser or extension session ends.
 
+## Site adapters
+
+Each supported site lives under `src/sites/<site>/` as two adapters, defined in `src/sites/types.ts`:
+
+- `background.ts` recognises the request that generates a new answer and returns the live ID its messages will carry, from the request (`liveIdFromRequest`) or the response (`liveIdFromResponse`).
+- `content.ts` names the element that holds one rendered turn and reads the turn's tool calls, keeping only those whose live ID was observed in the tab.
+
+`src/background/live.ts` and `src/content/runtime.ts` supply everything else: passive request observation, messaging, change tracking, deduplication, and pause handling. To add a site, write both adapters, register them in `src/sites/background.ts` and `src/sites/content.ts`, and add the site's origin to `host_permissions` and the content-script `matches` in `public/manifest.json`. A test fails if the manifest entries are missing.
+
+Content scripts cannot import shared chunks, so `npm run build` bundles the content script in a second pass as a single self-contained file.
+
 ## Setup
 
 Requirements: Node.js 22.12+, 24+, or 26+ and npm 11 or newer.
