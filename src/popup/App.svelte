@@ -137,7 +137,6 @@
   </section>
 
   <footer>
-    <span>Hooray, the extension works!</span>
     <button class="close" type="button" on:click={closePopup}>Close</button>
   </footer>
 </main>
@@ -338,6 +337,7 @@
 
   footer {
     border-top: 1px solid #e2e6ef;
+    justify-content: flex-end;
     padding-top: 12px;
   }
 

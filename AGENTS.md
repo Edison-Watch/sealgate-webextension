@@ -17,7 +17,7 @@
 - Install the unpacked extension from the repository's generated `dist/` directory. Resolve the repository root at runtime, append `/dist`, and pass that absolute path to the relevant browser MCP; never hard-code a machine-specific path.
 - Installing, reloading, triggering, and uninstalling this WIP extension in the dedicated test browsers are authorized parts of the development workflow.
 - After UI changes, test in Firefox first: trigger the extension action, inspect the popup, exercise its controls, and check the popup page for console errors. Repeat in Chrome only when the change is browser-specific, compatibility-sensitive, or explicitly requested.
-- For this baseline popup, verify the text `Hooray, the extension works!` and verify that clicking `Close` closes the popup.
+- For this baseline popup, verify the heading `ChatGPT tool calls`, verify that the toolbar button shows the Sealgate icon, and verify that clicking `Close` closes the popup.
 
 ## Useful commands
 
