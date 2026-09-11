@@ -34,8 +34,38 @@ function reactMessages(button: HTMLButtonElement): unknown[] {
   return nearestMessages;
 }
 
+// A new chat shows a client ID such as `/c/WEB:<uuid>` until the server has
+// created the conversation, then swaps in the server's ID.
+const temporaryConversationPrefix = 'WEB:';
+
+// The thread a turn was rendered for. Conversations loaded from the server
+// carry their server ID; one started in this tab keeps its temporary ID.
+function reactThreadId(button: HTMLButtonElement): string | null {
+  try {
+    let fiber = reactFiber(button);
+
+    for (let depth = 0; fiber && depth < 60; depth += 1) {
+      const threadId = stringProperty(
+        property(fiber, 'memoizedProps'),
+        'clientThreadId',
+      );
+      if (threadId) {
+        return threadId;
+      }
+
+      fiber = property(fiber, 'return');
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+// Conversations live at /c/<id>, or at /g/<gizmo>/c/<id> inside a project or
+// a custom GPT.
 function conversationIdFromUrl(url: URL): string | null {
-  const match = url.pathname.match(/^\/c\/([^/]+)/);
+  const match = url.pathname.match(/(?:^|\/)c\/([^/]+)/);
   return match?.[1] ?? null;
 }
 
@@ -65,7 +95,18 @@ export function readToolCallsFromButton(
     return [];
   }
 
-  const conversationId = conversationIdFromUrl(new URL(window.location.href));
+  // When switching conversations the URL changes before the old turns
+  // unmount, so the turn's own thread ID wins whenever it is a server ID.
+  const threadId = reactThreadId(button);
+  const conversationId =
+    threadId && !threadId.startsWith(temporaryConversationPrefix)
+      ? threadId
+      : conversationIdFromUrl(new URL(window.location.href));
+  // Wait for the server ID; the turn is rescanned as the answer streams on.
+  if (conversationId?.startsWith(temporaryConversationPrefix)) {
+    return [];
+  }
+
   const detectedAt = now().toISOString();
   const calls: ToolCallRecord[] = [];
 

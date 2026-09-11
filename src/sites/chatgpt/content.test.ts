@@ -30,6 +30,7 @@ function toolRequest(id: string, requestId: string) {
 function renderToolButton(props: {
   messages: unknown[];
   allMessages?: unknown[];
+  threadId?: string;
 }): HTMLButtonElement {
   document.body.innerHTML = `
     <section data-turn="assistant" data-turn-id="request-conversation-1-0">
@@ -51,7 +52,10 @@ function renderToolButton(props: {
     value: {
       memoizedProps: {},
       return: {
-        memoizedProps: { messages: props.messages },
+        memoizedProps: {
+          messages: props.messages,
+          clientThreadId: props.threadId,
+        },
         return: turnFiber,
       },
     },
@@ -129,6 +133,70 @@ describe('ChatGPT tool call detector', () => {
         (call) => call.id,
       ),
     ).toEqual(['live-result']);
+  });
+
+  it('reads the conversation ID of project and custom GPT chats', () => {
+    window.history.replaceState({}, '', '/g/g-p-project-1/c/conversation-2');
+    const button = renderToolButton({
+      messages: [toolResult('result-1', 'live-1', 'microsoft_docs_search')],
+    });
+
+    expect(
+      readToolCallsFromButton(button, new Set(['live-1']), now).map(
+        (call) => call.conversationId,
+      ),
+    ).toEqual(['conversation-2']);
+  });
+
+  it("prefers the turn's thread ID while the URL moves to another conversation", () => {
+    window.history.replaceState({}, '', '/c/conversation-2');
+    const button = renderToolButton({
+      messages: [toolResult('result-1', 'live-1', 'microsoft_docs_search')],
+      threadId: 'conversation-1',
+    });
+
+    expect(
+      readToolCallsFromButton(button, new Set(['live-1']), now).map(
+        (call) => call.conversationId,
+      ),
+    ).toEqual(['conversation-1']);
+  });
+
+  it('uses the URL when the turn only has a temporary thread ID', () => {
+    window.history.replaceState({}, '', '/c/conversation-1');
+    const button = renderToolButton({
+      messages: [toolResult('result-1', 'live-1', 'microsoft_docs_search')],
+      threadId: 'WEB:client-1',
+    });
+
+    expect(
+      readToolCallsFromButton(button, new Set(['live-1']), now).map(
+        (call) => call.conversationId,
+      ),
+    ).toEqual(['conversation-1']);
+  });
+
+  it('waits for the server ID of a new conversation', () => {
+    window.history.replaceState({}, '', '/c/WEB:client-1');
+    const button = renderToolButton({
+      messages: [toolResult('result-1', 'live-1', 'microsoft_docs_search')],
+    });
+
+    expect(readToolCallsFromButton(button, new Set(['live-1']), now)).toEqual(
+      [],
+    );
+  });
+
+  it('records calls outside a saved conversation without an ID', () => {
+    const button = renderToolButton({
+      messages: [toolResult('result-1', 'live-1', 'microsoft_docs_search')],
+    });
+
+    expect(
+      readToolCallsFromButton(button, new Set(['live-1']), now).map(
+        (call) => call.conversationId,
+      ),
+    ).toEqual([null]);
   });
 
   it('falls back to the nearest messages prop when allMessages is absent', () => {
