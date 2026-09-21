@@ -2,7 +2,7 @@
 command = "/bin/sh"
 args = ["./scripts/chrome-devtools-mcp.sh"]
 enabled = true
-required = true
+required = false
 startup_timeout_sec = 60
 tool_timeout_sec = 120
 default_tools_approval_mode = "approve"
@@ -11,7 +11,7 @@ default_tools_approval_mode = "approve"
 command = "/bin/sh"
 args = ["./scripts/firefox-devtools-mcp.sh"]
 enabled = true
-required = true
+required = false
 startup_timeout_sec = 60
 tool_timeout_sec = 120
 default_tools_approval_mode = "approve"
