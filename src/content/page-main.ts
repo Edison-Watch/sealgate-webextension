@@ -1,11 +1,10 @@
 import { contentSites } from '../sites/content';
-import { mainWorldContentSite } from './page-bridge';
-import { startTracking } from './runtime';
+import { startMainWorldScanning } from './page-bridge';
 
 const site = contentSites.find(
   (candidate) => candidate.origin === window.location.origin,
 );
 
 if (site) {
-  startTracking(mainWorldContentSite(site));
+  startMainWorldScanning(site);
 }

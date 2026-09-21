@@ -24,4 +24,15 @@ describe('site registry and manifest', () => {
       ).toContain(`${site.origin}/*`);
     },
   );
+
+  it('runs the React reader in the page main world', () => {
+    const pageScript = manifest.content_scripts.find((script) =>
+      script.js.includes('assets/page.js'),
+    );
+
+    expect(pageScript?.world).toBe('MAIN');
+    for (const site of contentSites) {
+      expect(pageScript?.matches).toContain(`${site.origin}/*`);
+    }
+  });
 });

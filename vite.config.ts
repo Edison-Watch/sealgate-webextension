@@ -29,9 +29,28 @@ const contentBuild: BuildEnvironmentOptions = {
   },
 };
 
+// React's private DOM expandos are only visible from the host page's MAIN
+// world in Chrome. This small companion bundle reads them and returns only
+// sanitized tool-call metadata to the isolated content script.
+const pageBuild: BuildEnvironmentOptions = {
+  emptyOutDir: false,
+  rollupOptions: {
+    input: { page: 'src/content/page-main.ts' },
+    output: {
+      entryFileNames: 'assets/[name].js',
+      format: 'iife',
+    },
+  },
+};
+
 export default defineConfig(({ mode }) => ({
   plugins: [svelte(), svelteTesting()],
-  build: mode === 'content' ? contentBuild : extensionBuild,
+  build:
+    mode === 'content'
+      ? contentBuild
+      : mode === 'page'
+        ? pageBuild
+        : extensionBuild,
   test: {
     environment: 'jsdom',
   },
