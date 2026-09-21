@@ -7,6 +7,17 @@ import {
 } from '../shared/tracker';
 import type { ContentSite } from '../sites/types';
 
+export interface TrackableContentSite extends Omit<
+  ContentSite,
+  'readToolCalls'
+> {
+  readToolCalls(
+    turn: HTMLElement,
+    liveIds: ReadonlySet<string>,
+    now?: () => Date,
+  ): ToolCallRecord[] | Promise<ToolCallRecord[]>;
+}
+
 export function updateSeenCalls(
   seenCallKeys: Set<string>,
   calls: ToolCallRecord[],
@@ -41,7 +52,7 @@ function isMessageOfType<T extends { type: string }>(
   );
 }
 
-export function startTracking(site: ContentSite): void {
+export function startTracking(site: TrackableContentSite): void {
   const liveIds = new Set<string>();
   const seenCallKeys = new Set<string>();
   const dirtyTurns = new Set<HTMLElement>();
@@ -76,7 +87,9 @@ export function startTracking(site: ContentSite): void {
     );
   }
 
-  function readTurns(turns: Iterable<HTMLElement>): ToolCallRecord[] {
+  async function readTurns(
+    turns: Iterable<HTMLElement>,
+  ): Promise<ToolCallRecord[]> {
     const detected = new Map<string, ToolCallRecord>();
 
     for (const turn of turns) {
@@ -84,7 +97,7 @@ export function startTracking(site: ContentSite): void {
         continue;
       }
 
-      for (const call of site.readToolCalls(turn, liveIds)) {
+      for (const call of await site.readToolCalls(turn, liveIds)) {
         detected.set(callKey(call), call);
       }
     }
@@ -96,7 +109,7 @@ export function startTracking(site: ContentSite): void {
     return initialized && !paused && liveIds.size > 0;
   }
 
-  function scanDirtyTurns(): void {
+  async function scanDirtyTurns(): Promise<void> {
     window.clearTimeout(scanTimer);
     scanTimer = undefined;
     const turns = [...dirtyTurns];
@@ -106,8 +119,13 @@ export function startTracking(site: ContentSite): void {
       return;
     }
 
-    const newCalls = updateSeenCalls(seenCallKeys, readTurns(turns), true);
-    void recordCalls(newCalls);
+    const calls = await readTurns(turns);
+    if (!isActive()) {
+      return;
+    }
+
+    const newCalls = updateSeenCalls(seenCallKeys, calls, true);
+    await recordCalls(newCalls);
   }
 
   function scheduleScan(delayMs = 750): void {
@@ -116,14 +134,14 @@ export function startTracking(site: ContentSite): void {
     }
 
     window.clearTimeout(scanTimer);
-    scanTimer = window.setTimeout(scanDirtyTurns, delayMs);
+    scanTimer = window.setTimeout(() => void scanDirtyTurns(), delayMs);
   }
 
   // Calls from live requests that finished while tracking was paused stay
   // unrecorded when tracking resumes.
-  function markVisibleCallsSeen(): void {
+  async function markVisibleCallsSeen(): Promise<void> {
     dirtyTurns.clear();
-    updateSeenCalls(seenCallKeys, readTurns(assistantTurns()), false);
+    updateSeenCalls(seenCallKeys, await readTurns(assistantTurns()), false);
   }
 
   function noteMutations(mutations: MutationRecord[]): void {
@@ -189,7 +207,7 @@ export function startTracking(site: ContentSite): void {
       scanTimer = undefined;
       dirtyTurns.clear();
     } else if (wasPaused && !paused && initialized) {
-      markVisibleCallsSeen();
+      void markVisibleCallsSeen();
     }
   });
 

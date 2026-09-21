@@ -25,7 +25,8 @@ export function arrayProperty(value: unknown, key: string): unknown[] | null {
 }
 
 // Firefox hides page-set expandos such as React's fiber behind Xray wrappers;
-// `wrappedJSObject` exposes them. Chrome content scripts see them directly.
+// `wrappedJSObject` exposes them. Chrome only exposes them to scripts running
+// in the page's MAIN world, not to the extension's default isolated world.
 function pageObject(element: Element): UnknownRecord {
   try {
     const wrapped = (element as Element & { wrappedJSObject?: unknown })
