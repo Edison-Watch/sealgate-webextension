@@ -59,6 +59,7 @@ export function startTracking(site: TrackableContentSite): void {
   let paused = true;
   let initialized = false;
   let scanTimer: number | undefined;
+  let trackingGeneration = 0;
 
   function assistantTurns(root: ParentNode = document): HTMLElement[] {
     const turns = [...root.querySelectorAll<HTMLElement>(site.turnSelector)];
@@ -119,8 +120,9 @@ export function startTracking(site: TrackableContentSite): void {
       return;
     }
 
+    const generation = trackingGeneration;
     const calls = await readTurns(turns);
-    if (!isActive()) {
+    if (!isActive() || generation !== trackingGeneration) {
       return;
     }
 
@@ -139,9 +141,14 @@ export function startTracking(site: TrackableContentSite): void {
 
   // Calls from live requests that finished while tracking was paused stay
   // unrecorded when tracking resumes.
-  async function markVisibleCallsSeen(): Promise<void> {
+  async function markVisibleCallsSeen(generation: number): Promise<void> {
     dirtyTurns.clear();
-    updateSeenCalls(seenCallKeys, await readTurns(assistantTurns()), false);
+    const calls = await readTurns(assistantTurns());
+    if (paused || generation !== trackingGeneration) {
+      return;
+    }
+
+    updateSeenCalls(seenCallKeys, calls, false);
   }
 
   function noteMutations(mutations: MutationRecord[]): void {
@@ -202,12 +209,16 @@ export function startTracking(site: TrackableContentSite): void {
     const wasPaused = paused;
     paused = message.state.paused;
 
+    if (wasPaused !== paused) {
+      trackingGeneration += 1;
+    }
+
     if (!wasPaused && paused) {
       window.clearTimeout(scanTimer);
       scanTimer = undefined;
       dirtyTurns.clear();
     } else if (wasPaused && !paused && initialized) {
-      void markVisibleCallsSeen();
+      void markVisibleCallsSeen(trackingGeneration);
     }
   });
 

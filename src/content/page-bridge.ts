@@ -47,20 +47,33 @@ function parseRequest(value: unknown): ScanRequest | null {
   return { requestId: parsed.requestId, liveIds: [...parsed.liveIds] };
 }
 
-function isToolCallRecord(value: unknown): value is ToolCallRecord {
-  return (
-    isRecord(value) &&
-    (value.site === 'chatgpt' || value.site === 'claude') &&
-    typeof value.id === 'string' &&
-    (typeof value.conversationId === 'string' ||
-      value.conversationId === null) &&
-    typeof value.turnId === 'string' &&
-    typeof value.appName === 'string' &&
-    typeof value.toolName === 'string' &&
-    typeof value.toolIndex === 'number' &&
-    Number.isInteger(value.toolIndex) &&
-    typeof value.detectedAt === 'string'
-  );
+function sanitizeToolCallRecord(value: unknown): ToolCallRecord | null {
+  if (
+    !isRecord(value) ||
+    (value.site !== 'chatgpt' && value.site !== 'claude') ||
+    typeof value.id !== 'string' ||
+    (typeof value.conversationId !== 'string' &&
+      value.conversationId !== null) ||
+    typeof value.turnId !== 'string' ||
+    typeof value.appName !== 'string' ||
+    typeof value.toolName !== 'string' ||
+    typeof value.toolIndex !== 'number' ||
+    !Number.isInteger(value.toolIndex) ||
+    typeof value.detectedAt !== 'string'
+  ) {
+    return null;
+  }
+
+  return {
+    site: value.site,
+    id: value.id,
+    conversationId: value.conversationId,
+    turnId: value.turnId,
+    appName: value.appName,
+    toolName: value.toolName,
+    toolIndex: value.toolIndex,
+    detectedAt: value.detectedAt,
+  };
 }
 
 function parseResponse(value: unknown): ScanResponse | null {
@@ -68,17 +81,29 @@ function parseResponse(value: unknown): ScanResponse | null {
   if (
     !isRecord(parsed) ||
     typeof parsed.requestId !== 'string' ||
-    !Array.isArray(parsed.calls) ||
-    !parsed.calls.every(isToolCallRecord)
+    !Array.isArray(parsed.calls)
   ) {
     return null;
   }
 
-  return { requestId: parsed.requestId, calls: [...parsed.calls] };
+  const calls = parsed.calls.map(sanitizeToolCallRecord);
+  if (calls.some((call) => call === null)) {
+    return null;
+  }
+
+  return {
+    requestId: parsed.requestId,
+    calls: calls.filter((call): call is ToolCallRecord => call !== null),
+  };
 }
 
 // Installs the page-world half of the bridge. It is deliberately synchronous:
 // only sanitized tool metadata crosses back into the isolated extension world.
+// The host page can observe or forge these events, just as it can alter the
+// DOM and React state being inspected. The isolated side therefore treats the
+// response as untrusted, correlates it to its request, and projects only the
+// recognized ToolCallRecord fields; this bridge is not an authentication
+// boundary.
 export function startMainWorldScanning(site: ContentSite): () => void {
   const onRequest = (event: Event): void => {
     if (!(event instanceof CustomEvent)) {

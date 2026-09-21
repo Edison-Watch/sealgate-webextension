@@ -15,12 +15,17 @@ const call: ToolCallRecord = {
 };
 
 function fixtureSite(): ContentSite {
+  const untrustedCall = {
+    ...call,
+    payload: { accessToken: 'must-not-cross-the-bridge' },
+  };
+
   return {
     id: 'claude',
     origin: 'https://claude.ai',
     turnSelector: '[data-testid="transcript-row"]',
     readToolCalls(_turn, liveIds) {
-      return liveIds.has('assistant-1') ? [call] : [];
+      return liveIds.has('assistant-1') ? [untrustedCall] : [];
     },
   };
 }
@@ -47,6 +52,7 @@ describe('main-world content bridge', () => {
     stop();
 
     expect(calls).toEqual([call]);
+    expect(calls[0]).not.toHaveProperty('payload');
   });
 
   it('does not return calls for a non-live message', async () => {
