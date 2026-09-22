@@ -183,7 +183,7 @@
                 {/if}
               </span>
               <span class="site-name muted">
-                {siteNames[group.site]} · {group.calls.length}
+                {siteNames[group.site] ?? group.site} · {group.calls.length}
                 {group.calls.length === 1 ? 'call' : 'calls'}
               </span>
             </div>
