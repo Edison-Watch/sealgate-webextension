@@ -337,7 +337,7 @@ a:hover {
 .field input:focus-visible,
 .field textarea:focus-visible {
   border-color: var(--accent);
-  outline: 2px solid var(--accent-muted);
+  outline: 2px solid var(--accent);
   outline-offset: 0;
 }
 
@@ -358,4 +358,13 @@ a:hover {
 
 .scroll::-webkit-scrollbar-thumb:hover {
   background-color: var(--text-muted);
+}
+
+/* Firefox ignores ::-webkit-scrollbar; the standard properties are scoped to
+   it because setting them in Chromium switches to the auto-hiding overlay bar. */
+@supports not selector(::-webkit-scrollbar) {
+  .scroll {
+    scrollbar-color: var(--border) transparent;
+    scrollbar-width: thin;
+  }
 }

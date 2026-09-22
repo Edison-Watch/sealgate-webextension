@@ -118,7 +118,7 @@
 <section class="card connection" aria-labelledby="connection-heading">
   <div class="card-header">
     <h2 id="connection-heading">Reporting</h2>
-    {#if connection?.destination}
+    {#if connection?.destination && !connection.signingIn}
       <span class="badge badge-success">
         <span class="badge-dot"></span>
         Connected

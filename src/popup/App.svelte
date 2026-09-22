@@ -164,7 +164,6 @@
             <path d="M12 2a15.3 15.3 0 0 0-4 10 15.3 15.3 0 0 0 4 10" />
           </svg>
         </div>
-        <p class="empty-title">No tool calls yet</p>
         <p class="muted">
           No tool calls detected yet. Use a tool in an open ChatGPT or Claude
           conversation.
@@ -294,12 +293,6 @@
     justify-content: center;
     margin-bottom: 4px;
     width: 38px;
-  }
-
-  .empty-title {
-    color: var(--text-primary);
-    font-size: 13px;
-    font-weight: 600;
   }
 
   .conversations {
