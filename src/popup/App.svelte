@@ -11,7 +11,6 @@
   } from '../shared/tracker';
   import AgentMark from './AgentMark.svelte';
   import Connection from './Connection.svelte';
-  import Mark from './Mark.svelte';
   import {
     conversationUrl,
     forSite,
@@ -102,23 +101,19 @@
 
 <main>
   <header>
-    <div class="brand">
-      <Mark size={30} />
-      <span class="wordmark">SealGate</span>
-    </div>
+    <img
+      class="wordmark"
+      src="/brand/sealgate-wordmark.png"
+      alt="SealGate"
+      height="28"
+    />
     <span class={`pill ${paused ? 'pill-paused' : 'pill-live'}`}>
       <span class="pill-dot"></span>
       {paused ? 'Paused' : 'Listening'}
     </span>
   </header>
 
-  <div class="hero">
-    <h1>Tool calls</h1>
-    <p class="muted">
-      Every MCP and app tool ChatGPT or Claude calls in this browser, as it
-      happens.
-    </p>
-  </div>
+  <h1>Tool calls</h1>
 
   <Connection />
 
@@ -252,26 +247,10 @@
     justify-content: space-between;
   }
 
-  .brand {
-    align-items: center;
-    color: var(--cyan);
-    display: flex;
-    gap: 10px;
-  }
-
   .wordmark {
-    color: var(--white);
-    font-family: var(--font-serif);
-    font-size: 17px;
-    letter-spacing: 0.12em;
-    line-height: 1;
-    text-transform: uppercase;
-  }
-
-  .hero {
-    display: grid;
-    gap: 4px;
-    padding: 2px 0 2px;
+    display: block;
+    height: 28px;
+    width: auto;
   }
 
   h1 {
@@ -280,11 +259,7 @@
     font-weight: 300;
     letter-spacing: -0.03em;
     line-height: 1.05;
-  }
-
-  .hero p {
-    font-size: 13px;
-    max-width: 34ch;
+    padding: 2px 0;
   }
 
   .controls {
