@@ -9,7 +9,9 @@
     type TrackerState,
     type TrackerStateChangedMessage,
   } from '../shared/tracker';
+  import AgentMark from './AgentMark.svelte';
   import Connection from './Connection.svelte';
+  import Mark from './Mark.svelte';
   import {
     conversationUrl,
     groupCallsByConversation,
@@ -70,6 +72,7 @@
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
+      hour12: false,
     }).format(new Date(timestamp));
   }
 
@@ -99,18 +102,29 @@
 
 <main>
   <header>
-    <div>
-      <p class="eyebrow">Sealgate</p>
-      <h1>Tool calls</h1>
+    <div class="brand">
+      <Mark size={30} />
+      <span class="wordmark">SealGate</span>
     </div>
-    <span class:paused class="status">{paused ? 'Paused' : 'Listening'}</span>
+    <span class={`pill ${paused ? 'pill-paused' : 'pill-live'}`}>
+      <span class="pill-dot"></span>
+      {paused ? 'Paused' : 'Listening'}
+    </span>
   </header>
+
+  <div class="hero">
+    <h1>Tool calls</h1>
+    <p class="muted">
+      Every MCP and app tool ChatGPT or Claude calls in this browser, as it
+      happens.
+    </p>
+  </div>
 
   <Connection />
 
   <div class="controls">
     <button
-      class="primary"
+      class="btn btn-primary"
       type="button"
       disabled={loading || busy}
       on:click={() =>
@@ -119,7 +133,7 @@
       {paused ? 'Resume listening' : 'Pause listening'}
     </button>
     <button
-      class="secondary"
+      class="btn btn-outline"
       type="button"
       disabled={loading || busy || calls.length === 0}
       on:click={() => sendRequest({ type: 'tracker:clearCalls' })}>Clear</button
@@ -127,39 +141,50 @@
   </div>
 
   {#if error}
-    <p class="error" role="alert">{error}</p>
+    <p class="notice" role="alert">{error}</p>
   {/if}
 
-  <section aria-labelledby="calls-heading">
-    <div class="section-heading">
-      <h2 id="calls-heading">Detected calls</h2>
+  <section class="panel" aria-labelledby="calls-heading">
+    <h2 id="calls-heading" class="label">
+      Detected calls
       <span class="count">{calls.length}</span>
-    </div>
+    </h2>
 
     {#if loading}
-      <p class="empty">Loading tracker…</p>
+      <p class="empty mono muted">Loading tracker…</p>
     {:else if calls.length === 0}
-      <p class="empty">
-        No tool calls detected yet. Use a tool in an open ChatGPT or Claude
-        conversation.
-      </p>
+      <div class="empty">
+        <div class="slots" aria-hidden="true">
+          {#each [1, 2, 3, 4] as slot (slot)}
+            <div class="slot"><span></span>?</div>
+          {/each}
+        </div>
+        <p class="mono muted">Listening for tool calls…</p>
+        <p class="muted small">
+          No tool calls detected yet. Use a tool in an open ChatGPT or Claude
+          conversation.
+        </p>
+      </div>
     {:else}
-      <ol class="conversations" aria-label="Conversations">
+      <ol class="conversations scroll" aria-label="Conversations">
         {#each groups as group (group.key)}
           {@const url = conversationUrl(group)}
           <li class="conversation">
             <div class="conversation-heading">
+              <span class="live-dot" aria-hidden="true"></span>
               {#if url}
                 <a
+                  class="conversation-link"
                   href={url}
                   target="_blank"
                   rel="noreferrer"
                   title={group.conversationId}>{conversationLabel(group)}</a
                 >
               {:else}
-                <span>{conversationLabel(group)}</span>
+                <span class="conversation-link">{conversationLabel(group)}</span
+                >
               {/if}
-              <span class="site-name">
+              <span class="site-name mono muted">
                 {siteNames[group.site]} · {group.calls.length}
                 {group.calls.length === 1 ? 'call' : 'calls'}
               </span>
@@ -170,13 +195,31 @@
             >
               {#each group.calls as call (callKey(call))}
                 <li class="call">
-                  <div class="call-heading">
-                    <strong>{call.toolName}</strong>
-                    <time datetime={call.detectedAt}
-                      >{formatTime(call.detectedAt)}</time
+                  <span class="check" aria-hidden="true">
+                    <svg
+                      width="10"
+                      height="10"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
                     >
-                  </div>
-                  <span class="app-name">{call.appName}</span>
+                      <path d="M2.5 6.5l2.3 2.3L9.5 3.8" />
+                    </svg>
+                  </span>
+                  <span class="agent"
+                    ><AgentMark site={call.site} size={13} /></span
+                  >
+                  <span class="chevron" aria-hidden="true">›</span>
+                  <span class="call-text">
+                    <strong class="mono">{call.toolName}</strong>
+                    <span class="app-name mono">{call.appName}</span>
+                  </span>
+                  <time class="mono" datetime={call.detectedAt}
+                    >{formatTime(call.detectedAt)}</time
+                  >
                 </li>
               {/each}
             </ol>
@@ -187,91 +230,60 @@
   </section>
 
   <footer>
-    <button class="close" type="button" on:click={closePopup}>Close</button>
+    <button class="btn btn-ghost btn-close" type="button" on:click={closePopup}
+      >Close</button
+    >
   </footer>
 </main>
 
 <style>
-  :global(*) {
-    box-sizing: border-box;
-  }
-
-  :global(body) {
-    margin: 0;
-    min-width: 390px;
-    background: #f5f7fb;
-    color: #172033;
-    font-family:
-      Inter,
-      ui-sans-serif,
-      system-ui,
-      -apple-system,
-      BlinkMacSystemFont,
-      'Segoe UI',
-      sans-serif;
-  }
-
   main {
     display: grid;
-    gap: 16px;
+    gap: 14px;
     margin-inline: auto;
     max-width: 520px;
-    padding: 18px;
+    padding: 16px 18px 12px;
   }
 
-  header,
-  .section-heading,
-  .call-heading,
-  footer {
+  header {
     align-items: center;
     display: flex;
     justify-content: space-between;
   }
 
-  h1,
-  h2,
-  p {
-    margin: 0;
+  .brand {
+    align-items: center;
+    color: var(--cyan);
+    display: flex;
+    gap: 10px;
   }
 
-  h1 {
-    font-size: 19px;
-    line-height: 1.25;
-  }
-
-  h2 {
-    font-size: 14px;
-  }
-
-  .eyebrow {
-    color: #657089;
-    font-size: 11px;
-    font-weight: 750;
-    letter-spacing: 0.08em;
-    margin-bottom: 2px;
+  .wordmark {
+    color: var(--white);
+    font-family: var(--font-serif);
+    font-size: 17px;
+    letter-spacing: 0.12em;
+    line-height: 1;
     text-transform: uppercase;
   }
 
-  .status,
-  .count {
-    background: #dcfce7;
-    border-radius: 999px;
-    color: #166534;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 4px 9px;
+  .hero {
+    display: grid;
+    gap: 4px;
+    padding: 2px 0 2px;
   }
 
-  .status.paused {
-    background: #fef3c7;
-    color: #92400e;
+  h1 {
+    color: var(--cyan);
+    font-size: 30px;
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
   }
 
-  .count {
-    background: #e7ebf5;
-    color: #3f4c66;
-    min-width: 24px;
-    text-align: center;
+  .hero p {
+    font-size: 13px;
+    max-width: 34ch;
   }
 
   .controls {
@@ -280,160 +292,195 @@
     grid-template-columns: 1fr auto;
   }
 
-  button {
-    border: 0;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    font: inherit;
-    font-weight: 700;
-    padding: 9px 13px;
-  }
-
-  button.primary {
-    background: #3157d5;
-    color: #ffffff;
-  }
-
-  button.primary:hover:not(:disabled) {
-    background: #2848b3;
-  }
-
-  button.secondary {
-    background: #e7ebf5;
-    color: #28344d;
-  }
-
-  button.secondary:hover:not(:disabled) {
-    background: #d8deeb;
-  }
-
-  button:disabled {
-    cursor: default;
-    opacity: 0.55;
-  }
-
-  button:focus-visible {
-    outline: 3px solid #93a8f5;
-    outline-offset: 2px;
-  }
-
-  section {
-    background: #ffffff;
-    border: 1px solid #e2e6ef;
-    border-radius: 12px;
-    overflow: hidden;
-  }
-
-  .section-heading {
-    border-bottom: 1px solid #e8ebf2;
-    padding: 12px 14px;
+  section.panel {
+    display: grid;
+    gap: 12px;
+    padding-bottom: 12px;
   }
 
   .empty {
-    color: #657089;
-    font-size: 13px;
-    line-height: 1.45;
-    padding: 24px 20px;
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+    padding: 12px 8px 8px;
     text-align: center;
   }
 
-  ol {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  .empty p {
+    font-size: 12px;
+  }
+
+  .empty .small {
+    font-size: 12px;
+    max-width: 36ch;
+  }
+
+  .slots {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(4, 60px);
+    margin-bottom: 6px;
+  }
+
+  .slot {
+    align-items: center;
+    border: 1px dashed var(--line-strong);
+    border-radius: 8px;
+    color: var(--grey-dim);
+    display: flex;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    gap: 8px;
+    height: 34px;
+    justify-content: center;
+  }
+
+  .slot span {
+    background: var(--row);
+    border-radius: 3px;
+    display: block;
+    height: 12px;
+    width: 12px;
   }
 
   .conversations {
-    max-height: 340px;
+    display: grid;
+    gap: 12px;
+    margin-right: -6px;
+    max-height: 330px;
     overflow-y: auto;
+    padding-right: 6px;
   }
 
   .conversation {
-    border-bottom: 1px solid #e2e6ef;
-  }
-
-  .conversation:last-child {
-    border-bottom: 0;
+    display: grid;
+    gap: 6px;
   }
 
   .conversation-heading {
     align-items: center;
-    background: #f8f9fc;
     display: flex;
-    font-size: 12px;
-    font-weight: 700;
-    gap: 12px;
-    justify-content: space-between;
-    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    gap: 8px;
+    letter-spacing: 0.01em;
+    padding: 2px 2px;
   }
 
-  .conversation-heading a {
-    color: #3157d5;
-    text-decoration: none;
+  .live-dot {
+    background: var(--grey-dim);
+    border-radius: 999px;
+    height: 8px;
+    width: 8px;
   }
 
-  .conversation-heading a:hover {
-    text-decoration: underline;
+  .conversation-link {
+    color: var(--white);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .call {
-    border-top: 1px solid #edf0f5;
-    display: grid;
-    gap: 4px;
-    padding: 11px 14px 11px 22px;
-  }
-
-  .call-heading {
-    gap: 12px;
+  a.conversation-link:hover {
+    color: var(--cyan);
   }
 
   .site-name {
-    color: #657089;
     font-size: 11px;
-    font-weight: 400;
+    white-space: nowrap;
   }
 
-  strong {
-    font-family:
-      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 13px;
-    overflow-wrap: anywhere;
+  .calls {
+    display: grid;
+    gap: 6px;
   }
 
-  time,
-  .app-name,
-  footer {
-    color: #657089;
-    font-size: 11px;
+  .call {
+    align-items: center;
+    background: var(--row);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    display: flex;
+    font-size: 12px;
+    gap: 8px;
+    min-width: 0;
+    padding: 7px 12px 7px 10px;
+    transition: border-color 0.15s ease;
+  }
+
+  .call:hover {
+    border-color: var(--line-strong);
+  }
+
+  .check {
+    align-items: center;
+    border: 1.5px solid var(--cyan);
+    border-radius: 999px;
+    color: var(--cyan);
+    display: inline-flex;
+    flex: none;
+    height: 18px;
+    justify-content: center;
+    width: 18px;
+  }
+
+  .agent {
+    align-items: center;
+    background: var(--black);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    color: var(--white);
+    display: inline-flex;
+    flex: none;
+    height: 22px;
+    justify-content: center;
+    width: 22px;
+  }
+
+  .chevron {
+    color: var(--grey-dim);
+    flex: none;
+  }
+
+  .call-text {
+    display: grid;
+    flex: 1;
+    gap: 1px;
+    min-width: 0;
   }
 
   .app-name {
-    font-size: 12px;
+    color: var(--grey);
+    font-size: 11px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .error {
-    background: #fee2e2;
-    border-radius: 8px;
-    color: #991b1b;
-    font-size: 12px;
-    padding: 9px 11px;
+  strong {
+    color: var(--white);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  time {
+    color: var(--cyan-deep);
+    flex: none;
+    font-size: 11px;
+    font-weight: 500;
   }
 
   footer {
-    border-top: 1px solid #e2e6ef;
+    display: flex;
     justify-content: flex-end;
-    padding-top: 12px;
   }
 
-  button.close {
-    background: transparent;
-    color: #4e5b74;
+  .btn-close {
     font-size: 12px;
-    padding: 4px 6px;
-  }
-
-  button.close:hover {
-    color: #172033;
+    padding: 4px 8px;
   }
 </style>
