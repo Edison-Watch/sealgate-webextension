@@ -1,11 +1,19 @@
 <script lang="ts">
-  import { AGENT_MARKS } from './brand';
+  import { AGENT_MARKS, type AgentMark } from './brand';
   import type { SiteId } from '../shared/tracker';
 
   export let site: SiteId;
   export let size = 14;
 
-  $: mark = AGENT_MARKS[site];
+  // A record from an older build could carry a site this build does not know.
+  const unknownMark: AgentMark = {
+    viewBox: '0 0 24 24',
+    path: '',
+    color: 'currentColor',
+  };
+
+  $: mark =
+    (AGENT_MARKS as Partial<Record<string, AgentMark>>)[site] ?? unknownMark;
 </script>
 
 <svg

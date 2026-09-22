@@ -118,7 +118,7 @@
 <section class="panel connection" aria-labelledby="connection-heading">
   <div class="heading">
     <h2 id="connection-heading" class="label">Reporting</h2>
-    {#if connection?.destination}
+    {#if connection?.destination && !connection.signingIn}
       <span class="pill pill-live">
         <span class="pill-dot"></span>
         Connected
@@ -350,7 +350,7 @@
   }
 
   .hint {
-    color: var(--grey-dim);
+    color: var(--grey);
     font-family: var(--font-mono);
     font-size: 11px;
     text-align: center;
