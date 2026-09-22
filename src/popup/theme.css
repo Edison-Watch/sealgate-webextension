@@ -297,7 +297,8 @@ a:hover {
 .field input:focus-visible,
 .field textarea:focus-visible {
   border-color: var(--cyan);
-  outline: none;
+  outline: 2px solid var(--cyan);
+  outline-offset: 1px;
 }
 
 .scroll::-webkit-scrollbar {
