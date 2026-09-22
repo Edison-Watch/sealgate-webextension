@@ -1,0 +1,310 @@
+/* SealGate "Wavelength White" theme for the popup: the docs-site palette.
+   Wavelength White ground, Baseline Black text, Graphene teal actions and Core
+   Cyan highlights, set in Archivo. Light by design, like the docs. */
+
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/archivo-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('/fonts/jetbrains-mono-latin.woff2') format('woff2');
+}
+
+:root {
+  color-scheme: light;
+  --white: #f9f9f9;
+  --paper: #ffffff;
+  --black: #000000;
+  --ink: #1c1c1c;
+  --graphene: #5e6575;
+  --graphene-light: #8f8f8f;
+  --grid: #c8c8c8;
+  --grid-soft: #e6e6e6;
+  --grid-faint: #f1f1f1;
+  --teal: #147c83;
+  --teal-deep: #0f6469;
+  --teal-tint: rgba(20, 124, 131, 0.1);
+  --cyan: #c3fffd;
+  --cyan-deep: #7de6e2;
+  --cyan-tint: #e8fffe;
+  --green: #007a52;
+  --green-tint: rgba(0, 199, 129, 0.14);
+  --amber: #b45309;
+  --amber-tint: rgba(254, 188, 46, 0.2);
+  --red: #c3001a;
+  --red-tint: rgba(255, 59, 77, 0.1);
+  --font-sans: 'Archivo', system-ui, -apple-system, sans-serif;
+  --font-serif: Georgia, 'Times New Roman', Times, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 390px;
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+ol,
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+a {
+  color: var(--teal);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--cyan-deep);
+  outline-offset: 2px;
+}
+
+/* Cards with the cyan corner tab from the sign-in banner. */
+.card {
+  background: var(--paper);
+  border: 1px solid var(--grid-soft);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  position: relative;
+}
+
+.card::before {
+  background: var(--cyan);
+  content: '';
+  height: 5px;
+  left: 14px;
+  position: absolute;
+  top: 0;
+  width: 40px;
+}
+
+.card-header {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 16px 16px 0;
+}
+
+.card-header h2 {
+  color: var(--black);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Pill buttons, teal on white. */
+.btn {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 500;
+  gap: 8px;
+  justify-content: center;
+  line-height: 1.2;
+  padding: 9px 18px;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn-primary {
+  background: var(--teal);
+  color: var(--white);
+}
+
+.btn-primary:hover {
+  background: var(--teal-deep);
+}
+
+.btn-secondary {
+  background: var(--paper);
+  border-color: var(--grid);
+  color: var(--ink);
+}
+
+.btn-secondary:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--graphene);
+}
+
+.btn-ghost:hover {
+  background: var(--grid-faint);
+  color: var(--black);
+}
+
+.btn-link {
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: var(--teal);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Chips, as the agent filters on the dashboard's Browser Logs page. */
+.chip {
+  align-items: center;
+  background: var(--paper);
+  border: 1px solid var(--grid-soft);
+  border-radius: 999px;
+  color: var(--ink);
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 500;
+  gap: 6px;
+  line-height: 1;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+.chip-active {
+  background: var(--cyan-tint);
+  border-color: var(--cyan-deep);
+  color: var(--teal);
+}
+
+.chip-paused {
+  background: var(--amber-tint);
+  border-color: transparent;
+  color: var(--amber);
+}
+
+.chip-dot {
+  background: currentColor;
+  border-radius: 999px;
+  height: 7px;
+  width: 7px;
+}
+
+.chip-count {
+  background: var(--cyan);
+  border-radius: 999px;
+  color: var(--black);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  min-width: 22px;
+  padding: 5px 7px;
+  text-align: center;
+}
+
+.notice {
+  background: var(--red-tint);
+  border-radius: 8px;
+  color: var(--red);
+  font-size: 12px;
+  padding: 9px 12px;
+}
+
+.muted {
+  color: var(--graphene);
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* Form controls. */
+.field {
+  color: var(--ink);
+  display: grid;
+  font-size: 12px;
+  font-weight: 500;
+  gap: 5px;
+}
+
+.field input,
+.field textarea {
+  background: var(--paper);
+  border: 1px solid var(--grid);
+  border-radius: 8px;
+  color: var(--black);
+  font: inherit;
+  font-weight: 400;
+  padding: 9px 12px;
+  resize: vertical;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: var(--graphene-light);
+}
+
+.field input:focus-visible,
+.field textarea:focus-visible {
+  border-color: var(--teal);
+  outline: 3px solid var(--cyan);
+  outline-offset: 0;
+}
+
+.scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background-color: var(--grid);
+  border-radius: 999px;
+}
+
+.scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--graphene-light);
+}
