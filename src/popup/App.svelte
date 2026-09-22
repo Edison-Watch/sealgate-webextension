@@ -9,7 +9,9 @@
     type TrackerState,
     type TrackerStateChangedMessage,
   } from '../shared/tracker';
+  import AgentMark from './AgentMark.svelte';
   import Connection from './Connection.svelte';
+  import Mark from './Mark.svelte';
   import {
     conversationUrl,
     groupCallsByConversation,
@@ -99,18 +101,24 @@
 
 <main>
   <header>
-    <div>
-      <p class="eyebrow">Sealgate</p>
-      <h1>Tool calls</h1>
+    <div class="brand">
+      <Mark size={26} />
+      <div class="brand-text">
+        <span class="wordmark">SealGate</span>
+        <h1>Tool calls</h1>
+      </div>
     </div>
-    <span class:paused class="status">{paused ? 'Paused' : 'Listening'}</span>
+    <span class={`badge ${paused ? 'badge-warning' : 'badge-success'}`}>
+      <span class="badge-dot"></span>
+      {paused ? 'Paused' : 'Listening'}
+    </span>
   </header>
 
   <Connection />
 
   <div class="controls">
     <button
-      class="primary"
+      class="btn btn-primary"
       type="button"
       disabled={loading || busy}
       on:click={() =>
@@ -119,7 +127,7 @@
       {paused ? 'Resume listening' : 'Pause listening'}
     </button>
     <button
-      class="secondary"
+      class="btn btn-secondary"
       type="button"
       disabled={loading || busy || calls.length === 0}
       on:click={() => sendRequest({ type: 'tracker:clearCalls' })}>Clear</button
@@ -127,39 +135,61 @@
   </div>
 
   {#if error}
-    <p class="error" role="alert">{error}</p>
+    <p class="notice" role="alert">{error}</p>
   {/if}
 
-  <section aria-labelledby="calls-heading">
-    <div class="section-heading">
+  <section class="card" aria-labelledby="calls-heading">
+    <div class="card-header">
       <h2 id="calls-heading">Detected calls</h2>
-      <span class="count">{calls.length}</span>
+      <span class="badge">{calls.length}</span>
     </div>
 
     {#if loading}
-      <p class="empty">Loading tracker…</p>
+      <p class="empty muted">Loading tracker…</p>
     {:else if calls.length === 0}
-      <p class="empty">
-        No tool calls detected yet. Use a tool in an open ChatGPT or Claude
-        conversation.
-      </p>
+      <div class="empty">
+        <div class="empty-icon" aria-hidden="true">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10" />
+            <path d="M12 2a15.3 15.3 0 0 0-4 10 15.3 15.3 0 0 0 4 10" />
+          </svg>
+        </div>
+        <p class="empty-title">No tool calls yet</p>
+        <p class="muted">
+          No tool calls detected yet. Use a tool in an open ChatGPT or Claude
+          conversation.
+        </p>
+      </div>
     {:else}
-      <ol class="conversations" aria-label="Conversations">
+      <ol class="conversations scroll" aria-label="Conversations">
         {#each groups as group (group.key)}
           {@const url = conversationUrl(group)}
           <li class="conversation">
             <div class="conversation-heading">
+              <AgentMark site={group.site} size={14} />
               {#if url}
                 <a
+                  class="conversation-link"
                   href={url}
                   target="_blank"
                   rel="noreferrer"
                   title={group.conversationId}>{conversationLabel(group)}</a
                 >
               {:else}
-                <span>{conversationLabel(group)}</span>
+                <span class="conversation-link">{conversationLabel(group)}</span
+                >
               {/if}
-              <span class="site-name">
+              <span class="site-name muted">
                 {siteNames[group.site]} · {group.calls.length}
                 {group.calls.length === 1 ? 'call' : 'calls'}
               </span>
@@ -170,13 +200,13 @@
             >
               {#each group.calls as call (callKey(call))}
                 <li class="call">
-                  <div class="call-heading">
-                    <strong>{call.toolName}</strong>
-                    <time datetime={call.detectedAt}
-                      >{formatTime(call.detectedAt)}</time
-                    >
+                  <div class="call-main">
+                    <strong class="mono">{call.toolName}</strong>
+                    <span class="app-name muted">{call.appName}</span>
                   </div>
-                  <span class="app-name">{call.appName}</span>
+                  <time class="mono muted" datetime={call.detectedAt}
+                    >{formatTime(call.detectedAt)}</time
+                  >
                 </li>
               {/each}
             </ol>
@@ -187,91 +217,56 @@
   </section>
 
   <footer>
-    <button class="close" type="button" on:click={closePopup}>Close</button>
+    <button class="btn btn-ghost btn-close" type="button" on:click={closePopup}
+      >Close</button
+    >
   </footer>
 </main>
 
 <style>
-  :global(*) {
-    box-sizing: border-box;
-  }
-
-  :global(body) {
-    margin: 0;
-    min-width: 390px;
-    background: #f5f7fb;
-    color: #172033;
-    font-family:
-      Inter,
-      ui-sans-serif,
-      system-ui,
-      -apple-system,
-      BlinkMacSystemFont,
-      'Segoe UI',
-      sans-serif;
-  }
-
   main {
     display: grid;
-    gap: 16px;
+    gap: 14px;
     margin-inline: auto;
     max-width: 520px;
-    padding: 18px;
+    padding: 16px 18px 12px;
   }
 
-  header,
-  .section-heading,
-  .call-heading,
-  footer {
+  header {
     align-items: center;
     display: flex;
+    gap: 12px;
     justify-content: space-between;
   }
 
-  h1,
-  h2,
-  p {
-    margin: 0;
+  .brand {
+    align-items: center;
+    color: var(--text-primary);
+    display: flex;
+    gap: 10px;
   }
 
-  h1 {
-    font-size: 19px;
-    line-height: 1.25;
+  .brand-text {
+    display: grid;
+    gap: 1px;
   }
 
-  h2 {
-    font-size: 14px;
-  }
-
-  .eyebrow {
-    color: #657089;
-    font-size: 11px;
-    font-weight: 750;
-    letter-spacing: 0.08em;
-    margin-bottom: 2px;
+  .wordmark {
+    color: var(--text-primary);
+    font-family: var(--font-serif);
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    line-height: 1;
     text-transform: uppercase;
   }
 
-  .status,
-  .count {
-    background: #dcfce7;
-    border-radius: 999px;
-    color: #166534;
+  h1 {
+    color: var(--text-secondary);
     font-size: 12px;
-    font-weight: 700;
-    padding: 4px 9px;
-  }
-
-  .status.paused {
-    background: #fef3c7;
-    color: #92400e;
-  }
-
-  .count {
-    background: #e7ebf5;
-    color: #3f4c66;
-    min-width: 24px;
-    text-align: center;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
   }
 
   .controls {
@@ -280,68 +275,31 @@
     grid-template-columns: 1fr auto;
   }
 
-  button {
-    border: 0;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    font: inherit;
-    font-weight: 700;
-    padding: 9px 13px;
-  }
-
-  button.primary {
-    background: #3157d5;
-    color: #ffffff;
-  }
-
-  button.primary:hover:not(:disabled) {
-    background: #2848b3;
-  }
-
-  button.secondary {
-    background: #e7ebf5;
-    color: #28344d;
-  }
-
-  button.secondary:hover:not(:disabled) {
-    background: #d8deeb;
-  }
-
-  button:disabled {
-    cursor: default;
-    opacity: 0.55;
-  }
-
-  button:focus-visible {
-    outline: 3px solid #93a8f5;
-    outline-offset: 2px;
-  }
-
-  section {
-    background: #ffffff;
-    border: 1px solid #e2e6ef;
-    border-radius: 12px;
-    overflow: hidden;
-  }
-
-  .section-heading {
-    border-bottom: 1px solid #e8ebf2;
-    padding: 12px 14px;
-  }
-
   .empty {
-    color: #657089;
-    font-size: 13px;
-    line-height: 1.45;
-    padding: 24px 20px;
+    display: grid;
+    font-size: 12px;
+    gap: 6px;
+    justify-items: center;
+    padding: 26px 24px;
     text-align: center;
   }
 
-  ol {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  .empty-icon {
+    align-items: center;
+    background: var(--accent-muted);
+    border-radius: 999px;
+    color: var(--accent);
+    display: flex;
+    height: 38px;
+    justify-content: center;
+    margin-bottom: 4px;
+    width: 38px;
+  }
+
+  .empty-title {
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 600;
   }
 
   .conversations {
@@ -350,7 +308,7 @@
   }
 
   .conversation {
-    border-bottom: 1px solid #e2e6ef;
+    border-bottom: 1px solid var(--border);
   }
 
   .conversation:last-child {
@@ -359,81 +317,87 @@
 
   .conversation-heading {
     align-items: center;
-    background: #f8f9fc;
+    background: color-mix(in srgb, var(--bg-base) 50%, transparent);
+    color: var(--text-primary);
     display: flex;
     font-size: 12px;
-    font-weight: 700;
-    gap: 12px;
-    justify-content: space-between;
+    font-weight: 500;
+    gap: 8px;
     padding: 8px 14px;
   }
 
-  .conversation-heading a {
-    color: #3157d5;
-    text-decoration: none;
+  .conversation-link {
+    color: var(--accent);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .conversation-heading a:hover {
-    text-decoration: underline;
-  }
-
-  .call {
-    border-top: 1px solid #edf0f5;
-    display: grid;
-    gap: 4px;
-    padding: 11px 14px 11px 22px;
-  }
-
-  .call-heading {
-    gap: 12px;
+  span.conversation-link {
+    color: var(--text-primary);
   }
 
   .site-name {
-    color: #657089;
     font-size: 11px;
-    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  .call {
+    align-items: center;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    padding: 9px 14px 9px 36px;
+    position: relative;
+  }
+
+  .call::before {
+    background: var(--accent);
+    border-radius: 999px;
+    content: '';
+    height: 5px;
+    left: 22px;
+    opacity: 0.7;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 5px;
+  }
+
+  .call-main {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
   }
 
   strong {
-    font-family:
-      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 13px;
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 500;
     overflow-wrap: anywhere;
   }
 
-  time,
-  .app-name,
-  footer {
-    color: #657089;
+  .app-name {
     font-size: 11px;
   }
 
-  .app-name {
-    font-size: 12px;
-  }
-
-  .error {
-    background: #fee2e2;
-    border-radius: 8px;
-    color: #991b1b;
-    font-size: 12px;
-    padding: 9px 11px;
+  time {
+    font-size: 11px;
+    white-space: nowrap;
   }
 
   footer {
-    border-top: 1px solid #e2e6ef;
+    border-top: 1px solid var(--border);
+    display: flex;
     justify-content: flex-end;
-    padding-top: 12px;
+    padding-top: 8px;
   }
 
-  button.close {
-    background: transparent;
-    color: #4e5b74;
+  .btn-close {
     font-size: 12px;
-    padding: 4px 6px;
-  }
-
-  button.close:hover {
-    color: #172033;
+    padding: 5px 10px;
   }
 </style>
