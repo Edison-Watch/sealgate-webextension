@@ -1,6 +1,7 @@
 <script lang="ts">
   import { AGENT_MARKS, type AgentMark } from './brand';
   import type { SiteId } from '../shared/tracker';
+  import { forSite } from './conversations';
 
   export let site: SiteId;
   export let size = 14;
@@ -12,8 +13,7 @@
     color: 'currentColor',
   };
 
-  $: mark =
-    (AGENT_MARKS as Partial<Record<string, AgentMark>>)[site] ?? unknownMark;
+  $: mark = forSite(AGENT_MARKS, site) ?? unknownMark;
 </script>
 
 <svg
