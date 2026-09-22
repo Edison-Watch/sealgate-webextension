@@ -9,13 +9,6 @@
   font-display: swap;
   src: url('/fonts/archivo-latin.woff2') format('woff2');
 }
-@font-face {
-  font-family: 'JetBrains Mono';
-  font-style: normal;
-  font-weight: 400 800;
-  font-display: swap;
-  src: url('/fonts/jetbrains-mono-latin.woff2') format('woff2');
-}
 
 :root {
   color-scheme: light;
@@ -30,19 +23,16 @@
   --grid-faint: #f1f1f1;
   --teal: #147c83;
   --teal-deep: #0f6469;
-  --teal-tint: rgba(20, 124, 131, 0.1);
   --cyan: #c3fffd;
   --cyan-deep: #7de6e2;
   --cyan-tint: #e8fffe;
-  --green: #007a52;
-  --green-tint: rgba(0, 199, 129, 0.14);
   --amber: #b45309;
+  --amber-text: #92400e;
   --amber-tint: rgba(254, 188, 46, 0.2);
   --red: #c3001a;
   --red-tint: rgba(255, 59, 77, 0.1);
   --font-sans: 'Archivo', system-ui, -apple-system, sans-serif;
   --font-serif: Georgia, 'Times New Roman', Times, serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 * {
@@ -98,7 +88,7 @@ a:hover {
 }
 
 :focus-visible {
-  outline: 3px solid var(--cyan-deep);
+  outline: 3px solid var(--teal);
   outline-offset: 2px;
 }
 
@@ -225,7 +215,7 @@ a:hover {
 .chip-paused {
   background: var(--amber-tint);
   border-color: transparent;
-  color: var(--amber);
+  color: var(--amber-text);
 }
 
 .chip-dot {
@@ -257,10 +247,6 @@ a:hover {
 
 .muted {
   color: var(--graphene);
-}
-
-.mono {
-  font-family: var(--font-mono);
 }
 
 /* Form controls. */
@@ -307,4 +293,13 @@ a:hover {
 
 .scroll::-webkit-scrollbar-thumb:hover {
   background-color: var(--graphene-light);
+}
+
+/* Firefox ignores ::-webkit-scrollbar; the standard properties are scoped to
+   it because setting them in Chromium switches to the auto-hiding overlay bar. */
+@supports not selector(::-webkit-scrollbar) {
+  .scroll {
+    scrollbar-color: var(--grid) transparent;
+    scrollbar-width: thin;
+  }
 }

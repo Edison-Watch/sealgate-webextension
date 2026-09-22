@@ -155,7 +155,6 @@
           <span class="empty-line"></span>
           <AgentMark site="claude" size={16} />
         </div>
-        <p class="empty-title">Nothing recorded yet</p>
         <p class="muted">
           No tool calls detected yet. Use a tool in an open ChatGPT or Claude
           conversation.
@@ -289,12 +288,6 @@
     display: block;
     height: 2px;
     width: 26px;
-  }
-
-  .empty-title {
-    color: var(--black);
-    font-size: 14px;
-    font-weight: 600;
   }
 
   .conversations {

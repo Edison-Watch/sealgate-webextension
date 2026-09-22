@@ -6,7 +6,6 @@
   } from './brand';
 
   export let size = 24;
-  export let title = 'SealGate';
 </script>
 
 <svg
@@ -14,8 +13,7 @@
   width={size}
   height={size}
   viewBox={SEALGATE_MARK_VIEWBOX}
-  role="img"
-  aria-label={title}
+  aria-hidden="true"
 >
   <path d={SEALGATE_MARK_FRAME_PATH} />
   <path d={SEALGATE_MARK_LETTER_PATH} />

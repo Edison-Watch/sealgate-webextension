@@ -118,7 +118,7 @@
 <section class="card connection" aria-labelledby="connection-heading">
   <div class="card-header">
     <h2 id="connection-heading">Reporting</h2>
-    {#if connection?.destination}
+    {#if connection?.destination && !connection.signingIn}
       <span class="chip chip-active">
         <span class="chip-dot"></span>
         Connected
@@ -330,7 +330,7 @@
   }
 
   .hint {
-    color: var(--graphene-light);
+    color: var(--graphene);
     font-size: 11px;
     text-align: center;
   }
