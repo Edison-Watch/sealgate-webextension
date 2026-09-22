@@ -12,10 +12,15 @@ const conversationUrls: Record<SiteId, (id: string) => string> = {
   claude: (id) => `https://claude.ai/chat/${encodeURIComponent(id)}`,
 };
 
+// A record from an older build could carry a site this build does not know;
+// such a conversation has no link.
 export function conversationUrl(group: ConversationGroup): string | null {
-  return group.conversationId === null
+  const url = (
+    conversationUrls as Partial<Record<string, (id: string) => string>>
+  )[group.site];
+  return group.conversationId === null || !url
     ? null
-    : conversationUrls[group.site](group.conversationId);
+    : url(group.conversationId);
 }
 
 // Calls are stored oldest first. Groups come back with the conversation that
