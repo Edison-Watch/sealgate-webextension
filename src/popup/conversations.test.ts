@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { SiteId, ToolCallRecord } from '../shared/tracker';
-import { conversationUrl, groupCallsByConversation } from './conversations';
+import {
+  conversationUrl,
+  forSite,
+  groupCallsByConversation,
+} from './conversations';
 
 function call(
   id: string,
@@ -66,5 +70,29 @@ describe('conversation grouping', () => {
       'https://claude.ai/chat/conversation-b',
     );
     expect(conversationUrl(unknown)).toBeNull();
+  });
+});
+
+describe('site lookups', () => {
+  const names: Record<SiteId, string> = {
+    chatgpt: 'ChatGPT',
+    claude: 'Claude',
+  };
+
+  it('finds a known site', () => {
+    expect(forSite(names, 'claude')).toBe('Claude');
+  });
+
+  it('ignores unknown and inherited names', () => {
+    expect(forSite(names, 'legacy-site')).toBeUndefined();
+    expect(forSite(names, 'constructor')).toBeUndefined();
+    expect(forSite(names, '__proto__')).toBeUndefined();
+  });
+
+  it('gives a conversation from an unknown site no link', () => {
+    const group = groupCallsByConversation([
+      call('result-1', 'conversation-1', 'constructor' as SiteId),
+    ])[0];
+    expect(conversationUrl(group)).toBeNull();
   });
 });
