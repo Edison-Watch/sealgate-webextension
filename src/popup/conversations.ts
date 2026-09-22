@@ -12,12 +12,19 @@ const conversationUrls: Record<SiteId, (id: string) => string> = {
   claude: (id) => `https://claude.ai/chat/${encodeURIComponent(id)}`,
 };
 
-// A record from an older build could carry a site this build does not know;
-// such a conversation has no link.
+// Looks a site up in a per-site table. A record from an older build could
+// carry a site this build does not know, and one named like an inherited
+// property ("constructor") must not resolve to Object.prototype's member.
+export function forSite<T>(
+  table: Record<SiteId, T>,
+  site: string,
+): T | undefined {
+  return Object.hasOwn(table, site) ? table[site as SiteId] : undefined;
+}
+
+// A conversation from an unknown site has no link.
 export function conversationUrl(group: ConversationGroup): string | null {
-  const url = (
-    conversationUrls as Partial<Record<string, (id: string) => string>>
-  )[group.site];
+  const url = forSite(conversationUrls, group.site);
   return group.conversationId === null || !url
     ? null
     : url(group.conversationId);

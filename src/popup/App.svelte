@@ -14,6 +14,7 @@
   import Mark from './Mark.svelte';
   import {
     conversationUrl,
+    forSite,
     groupCallsByConversation,
     type ConversationGroup,
   } from './conversations';
@@ -189,7 +190,8 @@
                 >
               {/if}
               <span class="site-name muted">
-                {siteNames[group.site] ?? group.site} · {group.calls.length}
+                {forSite(siteNames, group.site) ?? group.site} · {group.calls
+                  .length}
                 {group.calls.length === 1 ? 'call' : 'calls'}
               </span>
             </div>
