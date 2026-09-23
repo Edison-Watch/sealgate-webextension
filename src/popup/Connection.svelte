@@ -115,158 +115,177 @@
   });
 </script>
 
-<section class="connection" aria-labelledby="connection-heading">
-  <h2 id="connection-heading">Reporting</h2>
+<section class="panel connection" aria-labelledby="connection-heading">
+  <div class="heading">
+    <h2 id="connection-heading" class="label">Reporting</h2>
+    {#if connection?.destination && !connection.signingIn}
+      <span class="pill pill-live">
+        <span class="pill-dot"></span>
+        Connected
+      </span>
+    {:else if connection && !connection.signingIn}
+      <span class="pill muted">Not connected</span>
+    {/if}
+  </div>
 
-  {#if connection === null}
-    <p class="muted">Loading…</p>
-  {:else if connection.signingIn}
-    <p class="muted" role="status">
-      Finish signing in in the window that opened. You can close this popup.
-    </p>
-  {:else if connection.destination}
-    {@const destination = connection.destination}
-    {@const status = connection.status}
-    <div class="destination">
-      {#if destination.kind === 'sealgate'}
-        <span>
-          Signed in to
-          <a
-            href={`${destination.baseUrl}/dashboard/web-agents`}
-            target="_blank"
-            rel="noreferrer">{hostOf(destination.baseUrl)}</a
-          >
-        </span>
-      {:else}
-        <span title={destination.endpoint}>
-          Sending to <strong>{hostOf(destination.endpoint)}</strong>
-        </span>
-      {/if}
-      <button
-        class="link"
-        type="button"
-        disabled={busy}
-        on:click={() => send({ type: 'connection:disconnect' })}
-        >{destination.kind === 'sealgate' ? 'Sign out' : 'Disconnect'}</button
-      >
-    </div>
-    {#if status.lastError}
-      <p class="sync error" role="alert">
-        {status.pending}
-        {status.pending === 1 ? 'call' : 'calls'} not sent: {status.lastError}
+  <div class="body">
+    {#if connection === null}
+      <p class="muted">Loading…</p>
+    {:else if connection.signingIn}
+      <p class="muted" role="status">
+        Finish signing in in the window that opened. You can close this popup.
+      </p>
+    {:else if connection.destination}
+      {@const destination = connection.destination}
+      {@const status = connection.status}
+      <div class="destination">
+        {#if destination.kind === 'sealgate'}
+          <span>
+            Signed in to
+            <a
+              href={`${destination.baseUrl}/dashboard/web-agents`}
+              target="_blank"
+              rel="noreferrer">{hostOf(destination.baseUrl)}</a
+            >
+          </span>
+        {:else}
+          <span title={destination.endpoint}>
+            Sending to <strong>{hostOf(destination.endpoint)}</strong>
+          </span>
+        {/if}
         <button
-          class="link"
+          class="btn-link"
           type="button"
           disabled={busy}
-          on:click={() => send({ type: 'connection:retry' })}>Retry</button
+          on:click={() => send({ type: 'connection:disconnect' })}
+          >{destination.kind === 'sealgate' ? 'Sign out' : 'Disconnect'}</button
         >
-      </p>
-    {:else if status.pending > 0}
-      <p class="sync muted">Sending {status.pending}…</p>
-    {:else if status.lastExportAt}
-      <p class="sync muted">
-        All calls sent · last at {formatTime(status.lastExportAt)}
-      </p>
+      </div>
+      {#if status.lastError}
+        <p class="notice sync" role="alert">
+          {status.pending}
+          {status.pending === 1 ? 'call' : 'calls'} not sent: {status.lastError}
+          <button
+            class="btn-link retry"
+            type="button"
+            disabled={busy}
+            on:click={() => send({ type: 'connection:retry' })}>Retry</button
+          >
+        </p>
+      {:else if status.pending > 0}
+        <p class="sync muted">Sending {status.pending}…</p>
+      {:else if status.lastExportAt}
+        <p class="sync muted">
+          All calls sent · last at {formatTime(status.lastExportAt)}
+        </p>
+      {:else}
+        <p class="sync muted">New tool calls will be sent as they happen.</p>
+      {/if}
     {:else}
-      <p class="sync muted">New tool calls will be sent as they happen.</p>
-    {/if}
-  {:else}
-    <p class="muted">
-      Sign in to see your tool calls in the Sealgate dashboard.
-    </p>
-    <button
-      class="primary large"
-      type="button"
-      disabled={busy}
-      on:click={() => signIn(officialSealgateUrl)}>Log in to Sealgate</button
-    >
-    <div class="alternatives">
+      <p class="muted">
+        Sign in to see your tool calls in the Sealgate dashboard.
+      </p>
       <button
-        class="link small"
+        class="btn btn-primary btn-large"
         type="button"
-        aria-expanded={form === 'selfHosted'}
-        on:click={() => (form = form === 'selfHosted' ? 'none' : 'selfHosted')}
-        >Use a self-hosted Sealgate</button
+        disabled={busy}
+        on:click={() => signIn(officialSealgateUrl)}>Log in to Sealgate</button
       >
-      <button
-        class="link small"
-        type="button"
-        aria-expanded={form === 'otlp'}
-        on:click={() => (form = form === 'otlp' ? 'none' : 'otlp')}
-        >Use an OpenTelemetry endpoint</button
-      >
-    </div>
+      <div class="alternatives">
+        <button
+          class="btn-link small"
+          type="button"
+          aria-expanded={form === 'selfHosted'}
+          on:click={() =>
+            (form = form === 'selfHosted' ? 'none' : 'selfHosted')}
+          >Use a self-hosted Sealgate</button
+        >
+        <span class="divider" aria-hidden="true"></span>
+        <button
+          class="btn-link small"
+          type="button"
+          aria-expanded={form === 'otlp'}
+          on:click={() => (form = form === 'otlp' ? 'none' : 'otlp')}
+          >Use an OpenTelemetry endpoint</button
+        >
+      </div>
 
-    {#if form === 'selfHosted'}
-      <form on:submit|preventDefault={signInSelfHosted}>
-        <label>
-          Sealgate address
-          <input
-            type="url"
-            placeholder="https://sealgate.example.com"
-            bind:value={selfHostedUrl}
-            required
-          />
-        </label>
-        <button class="secondary" type="submit" disabled={busy}>Log in</button>
-      </form>
-    {:else if form === 'otlp'}
-      <form on:submit|preventDefault={useOtlp}>
-        <label>
-          OTLP/HTTP endpoint
-          <input
-            type="url"
-            placeholder="https://collector.example.com:4318"
-            bind:value={otlpEndpoint}
-            required
-          />
-        </label>
-        <label>
-          Headers <span class="muted">(optional, one per line)</span>
-          <textarea
-            rows="2"
-            placeholder="Authorization: Bearer …"
-            bind:value={otlpHeaders}></textarea>
-        </label>
-        <button class="secondary" type="submit" disabled={busy}>Save</button>
-      </form>
+      {#if form === 'selfHosted'}
+        <form on:submit|preventDefault={signInSelfHosted}>
+          <label class="field">
+            Sealgate address
+            <input
+              type="url"
+              placeholder="https://sealgate.example.com"
+              bind:value={selfHostedUrl}
+              required
+            />
+          </label>
+          <button
+            class="btn btn-outline btn-small"
+            type="submit"
+            disabled={busy}>Log in</button
+          >
+        </form>
+      {:else if form === 'otlp'}
+        <form on:submit|preventDefault={useOtlp}>
+          <label class="field">
+            OTLP/HTTP endpoint
+            <input
+              type="url"
+              placeholder="https://collector.example.com:4318"
+              bind:value={otlpEndpoint}
+              required
+            />
+          </label>
+          <label class="field">
+            Headers <span class="muted">(optional, one per line)</span>
+            <textarea
+              rows="2"
+              placeholder="Authorization: Bearer …"
+              bind:value={otlpHeaders}></textarea>
+          </label>
+          <button
+            class="btn btn-outline btn-small"
+            type="submit"
+            disabled={busy}>Save</button
+          >
+        </form>
+      {/if}
     {/if}
-  {/if}
 
-  {#if connection?.signInError}
-    <p class="error" role="alert">{connection.signInError}</p>
-  {/if}
-  {#if error}
-    <p class="error" role="alert">{error}</p>
-  {/if}
-  {#if connection && !connection.destination && !connection.signingIn}
-    <p class="hint muted">Official instance: {officialHost}</p>
-  {/if}
+    {#if connection?.signInError}
+      <p class="notice" role="alert">{connection.signInError}</p>
+    {/if}
+    {#if error}
+      <p class="notice" role="alert">{error}</p>
+    {/if}
+    {#if connection && !connection.destination && !connection.signingIn}
+      <p class="hint muted">Official instance: {officialHost}</p>
+    {/if}
+  </div>
 </section>
 
 <style>
   .connection {
-    background: #ffffff;
-    border: 1px solid #e2e6ef;
-    border-radius: 12px;
     display: grid;
-    gap: 10px;
-    padding: 12px 14px;
+    gap: 12px;
   }
 
-  h2 {
-    font-size: 14px;
-    margin: 0;
+  .heading {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+  }
+
+  .body {
+    display: grid;
+    gap: 10px;
   }
 
   p {
     font-size: 12px;
-    line-height: 1.45;
-    margin: 0;
-  }
-
-  .muted {
-    color: #657089;
   }
 
   .destination {
@@ -277,20 +296,42 @@
     justify-content: space-between;
   }
 
-  .destination a {
-    color: #3157d5;
-    font-weight: 700;
-    text-decoration: none;
+  .destination a,
+  .destination strong {
+    font-weight: 600;
   }
 
-  .destination a:hover {
-    text-decoration: underline;
+  .btn-large {
+    font-size: 14px;
+    padding: 11px 16px;
+    width: 100%;
+  }
+
+  .btn-small {
+    font-size: 12px;
+    padding: 8px 12px;
   }
 
   .alternatives {
+    align-items: center;
     display: flex;
-    gap: 14px;
+    gap: 10px;
     justify-content: center;
+  }
+
+  .divider {
+    background: var(--line-strong);
+    height: 12px;
+    width: 1px;
+  }
+
+  .small {
+    color: var(--grey);
+    font-size: 11px;
+  }
+
+  .small:hover {
+    color: var(--cyan);
   }
 
   form {
@@ -298,99 +339,19 @@
     gap: 8px;
   }
 
-  label {
-    display: grid;
+  .sync {
     font-size: 12px;
-    font-weight: 600;
-    gap: 4px;
   }
 
-  input,
-  textarea {
-    border: 1px solid #cfd6e4;
-    border-radius: 7px;
-    font: inherit;
-    font-size: 13px;
-    font-weight: 400;
-    padding: 7px 9px;
-    resize: vertical;
-  }
-
-  input:focus-visible,
-  textarea:focus-visible {
-    border-color: #3157d5;
-    outline: 2px solid #c7d3fb;
-  }
-
-  button {
-    border: 0;
-    border-radius: 8px;
-    cursor: pointer;
-    font: inherit;
-    font-weight: 700;
-    padding: 9px 13px;
-  }
-
-  button.primary {
-    background: #3157d5;
-    color: #ffffff;
-  }
-
-  button.primary:hover:not(:disabled) {
-    background: #2848b3;
-  }
-
-  button.large {
-    font-size: 15px;
-    padding: 12px 16px;
-    width: 100%;
-  }
-
-  button.secondary {
-    background: #e7ebf5;
-    color: #28344d;
-  }
-
-  button.link {
-    background: transparent;
-    color: #3157d5;
-    font-size: 12px;
-    padding: 0;
-  }
-
-  button.link:hover:not(:disabled) {
-    text-decoration: underline;
-  }
-
-  button.small {
-    font-size: 11px;
-    font-weight: 600;
-  }
-
-  button:disabled {
-    cursor: default;
-    opacity: 0.55;
-  }
-
-  button:focus-visible {
-    outline: 3px solid #93a8f5;
-    outline-offset: 2px;
-  }
-
-  .error {
-    background: #fee2e2;
-    border-radius: 8px;
-    color: #991b1b;
-    padding: 7px 9px;
-  }
-
-  .sync.error button {
-    color: #991b1b;
+  .retry {
+    color: inherit;
     margin-left: 4px;
     text-decoration: underline;
   }
 
   .hint {
+    color: var(--grey);
+    font-family: var(--font-mono);
     font-size: 11px;
     text-align: center;
   }

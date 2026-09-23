@@ -69,6 +69,33 @@ describe('extension popup', () => {
     expect(screen.getByText('1')).toBeTruthy();
   });
 
+  it('renders a call from a site it does not know without a link', async () => {
+    sendMessage.mockResolvedValue({
+      ok: true,
+      state: {
+        paused: false,
+        calls: [
+          {
+            site: 'legacy-site' as unknown as 'chatgpt',
+            id: 'result-1',
+            conversationId: 'conversation-1',
+            turnId: 'turn-1',
+            appName: 'microsoft-learn',
+            toolName: 'microsoft_docs_search',
+            toolIndex: 1,
+            detectedAt: '2026-09-11T12:00:00.000Z',
+          },
+        ],
+      },
+    });
+
+    render(App);
+
+    expect(await screen.findByText('microsoft_docs_search')).toBeTruthy();
+    expect(screen.getByText('legacy-site · 1 call')).toBeTruthy();
+    expect(screen.queryByRole('link')).toBeNull();
+  });
+
   it('groups calls under a link to their conversation', async () => {
     const record = {
       site: 'chatgpt',

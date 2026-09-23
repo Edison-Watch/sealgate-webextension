@@ -12,10 +12,22 @@ const conversationUrls: Record<SiteId, (id: string) => string> = {
   claude: (id) => `https://claude.ai/chat/${encodeURIComponent(id)}`,
 };
 
+// Looks a site up in a per-site table. A record from an older build could
+// carry a site this build does not know, and one named like an inherited
+// property ("constructor") must not resolve to Object.prototype's member.
+export function forSite<T>(
+  table: Record<SiteId, T>,
+  site: string,
+): T | undefined {
+  return Object.hasOwn(table, site) ? table[site as SiteId] : undefined;
+}
+
+// A conversation from an unknown site has no link.
 export function conversationUrl(group: ConversationGroup): string | null {
-  return group.conversationId === null
+  const url = forSite(conversationUrls, group.site);
+  return group.conversationId === null || !url
     ? null
-    : conversationUrls[group.site](group.conversationId);
+    : url(group.conversationId);
 }
 
 // Calls are stored oldest first. Groups come back with the conversation that
