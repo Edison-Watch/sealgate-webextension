@@ -75,6 +75,24 @@ git push origin v0.1.0
 
 The `Release` workflow runs `npm run verify`, checks that the tag matches both versions, packages the extension, and attaches the zip to a GitHub pre-release. The repository is public, so releases are too. Builds report to `https://dashboard.sealgate.ai` unless the workflow sets `VITE_SEALGATE_URL`.
 
+### Publishing to the Chrome Web Store
+
+After the GitHub pre-release exists, the `Release` workflow uploads the same zip to the [Chrome Web Store listing](https://chromewebstore.google.com/detail/ojkpmcojfepekccijafejkmdpahbagom) and submits it for review. The store publishes the update when the review passes. The job uses the Chrome Web Store API v2. It signs in as a Google Cloud service account through Workload Identity Federation (GitHub Actions gets short-lived Google credentials without a stored key). The job is skipped while the `CWS_PUBLISHER_ID` variable is not set.
+
+To set up the job once:
+
+1. In a Google Cloud project, enable the Chrome Web Store API and the IAM Service Account Credentials API.
+2. Create a service account. You do not need to give it project roles.
+3. Create a Workload Identity pool and an OIDC provider for `https://token.actions.githubusercontent.com`. Restrict the provider with the attribute condition `assertion.repository == 'Edison-Watch/sealgate-webextension'`. The [`google-github-actions/auth` guide](https://github.com/google-github-actions/auth#indirect-wif) lists the `gcloud` commands.
+4. Give the pool principal for this repository the `roles/iam.workloadIdentityUser` role on the service account.
+5. In the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole), open the Account page and add the service account email. The same page shows your publisher ID.
+6. In the GitHub repository settings, add these Actions variables. They are identifiers, not secrets.
+   - `CWS_PUBLISHER_ID`: the publisher ID from the dashboard.
+   - `CWS_SERVICE_ACCOUNT`: the service account email.
+   - `GCP_WORKLOAD_IDENTITY_PROVIDER`: the full provider name, for example `projects/123456789/locations/global/workloadIdentityPools/github/providers/sealgate`.
+
+The job runs in the `chrome-web-store` GitHub environment. If you want a person to approve each store submission, add required reviewers to that environment. The store rejects an upload whose version is not higher than the published version, so increase the version before each tag.
+
 ### Installing a release
 
 Download the zip from the latest release and unzip it.

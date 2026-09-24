@@ -36,3 +36,68 @@ jobs:
           gh release create "$GITHUB_REF_NAME" artifacts/*.zip
           --prerelease --generate-notes
           --title "Sealgate Tool Tracker $GITHUB_REF_NAME"
+
+  chrome-web-store:
+    name: Publish to the Chrome Web Store
+    needs: release
+    # Skipped until the store configuration in the README exists.
+    if: vars.CWS_PUBLISHER_ID != ''
+    runs-on: ubuntu-latest
+    environment: chrome-web-store
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        shell: bash
+    env:
+      CWS_ITEM: publishers/${{ vars.CWS_PUBLISHER_ID }}/items/ojkpmcojfepekccijafejkmdpahbagom
+    steps:
+      - name: Download the release zip
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --pattern '*.zip' --dir artifacts
+      - id: auth
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.CWS_SERVICE_ACCOUNT }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/chromewebstore
+          create_credentials_file: false
+          export_environment_variables: false
+      - name: Upload the package
+        env:
+          TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: |
+          zips=(artifacts/*.zip)
+          if [ "${#zips[@]}" -ne 1 ]; then
+            echo "::error::Expected one zip in the release, found ${#zips[@]}."
+            exit 1
+          fi
+          state="$(curl -sS --fail-with-body -X POST \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "X-Goog-Upload-Protocol: raw" \
+            -H "X-Goog-Upload-File-Name: extension.zip" \
+            --data-binary "@${zips[0]}" \
+            "https://chromewebstore.googleapis.com/upload/v2/$CWS_ITEM:upload" | tee /dev/stderr | jq -r .uploadState)"
+          for _ in $(seq 60); do
+            [ "$state" = IN_PROGRESS ] || break
+            sleep 5
+            state="$(curl -sS --fail-with-body \
+              -H "Authorization: Bearer $TOKEN" \
+              "https://chromewebstore.googleapis.com/v2/$CWS_ITEM:fetchStatus" | jq -r .lastAsyncUploadState)"
+          done
+          if [ "$state" != SUCCEEDED ]; then
+            echo "::error::The Chrome Web Store upload ended in state $state."
+            exit 1
+          fi
+      - name: Submit for review
+        env:
+          TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: |
+          curl -sS --fail-with-body -X POST \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"publishType":"DEFAULT_PUBLISH"}' \
+            "https://chromewebstore.googleapis.com/v2/$CWS_ITEM:publish"
